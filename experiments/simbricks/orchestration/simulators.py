@@ -1310,7 +1310,7 @@ class XsimDev(PCIDevSim):
         gui_param = '--gui' if self.gui else ''
         cmds.append(f'xsim {gui_param} --tclbatch {tcl_path} simbricks_sim')
         cmd = ' && '.join(cmds)
-        return f'bash -c \'{cmd}\''
+        return f'setsid --wait bash -c \'{cmd}\''
 
     def _link_libs(self) -> str:
         link_flags = []
