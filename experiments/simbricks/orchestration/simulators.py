@@ -1325,10 +1325,10 @@ class XsimDev(PCIDevSim):
         if self.saif_sampling_period_ns is not None:
             if self.saif_sampling_length_ns is not None:
                 lines.extend([
-                    'for {set i 0} {1} {incr i} {\n',
+                    'for {set i 0} {1} {incr i} {',
                     f'  open_saif {saif_path_without_suffix}-'
-                    '${i}.saif\n',
-                    '  log_saif [get_objects -r *]\n'
+                    '${i}.saif',
+                    '  log_saif [get_objects -r *]'
                 ])
 
                 if self.saif_sampling_length_ns is not None:
@@ -1336,26 +1336,26 @@ class XsimDev(PCIDevSim):
                         raise RuntimeError(
                             f'The following has to hold for saif_sampling_length_ns: 0 < saif_sampling_length_ns <= saif_sampling_period_ns'
                         )
-                    lines.append(f'  run {self.saif_sampling_length_ns} ns\n')
+                    lines.append(f'  run {self.saif_sampling_length_ns} ns')
                 else:
-                    lines.append(f'  run {self.saif_sampling_period_ns}\n')
+                    lines.append(f'  run {self.saif_sampling_period_ns}')
 
-                lines.append('  close_saif\n')
+                lines.append('  close_saif')
 
                 if self.saif_sampling_length_ns is not None:
                     lines.append(
-                        f'  run {self.saif_sampling_period_ns - self.saif_sampling_length_ns} ns\n'
+                        f'  run {self.saif_sampling_period_ns - self.saif_sampling_length_ns} ns'
                     )
 
-                lines.append('}\n')
+                lines.append('}')
         else:
-            lines.append('run all\n')
+            lines.append('run all')
 
         if not self.gui:
-            lines.append('quit\n')
+            lines.append('quit')
 
         with open(tcl_path, mode='w', encoding='utf-8') as file:
-            file.writelines(lines)
+            file.writelines([f'{line}\n' for line in lines])
 
 
 class BasicMemDev(MemDevSim):
