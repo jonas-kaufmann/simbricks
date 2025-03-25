@@ -129,18 +129,28 @@ class Component(object):
     async def interrupt(self) -> None:
         """Sends an interrupt signal."""
         if self._proc.returncode is None:
-            self._proc.send_signal(signal.SIGINT)
+            try:
+                os.kill(self._proc.pid, signal.SIGINT)
+                os.killpg(self._proc.pid, signal.SIGINT)
+            except ProcessLookupError:
+                pass
 
     async def terminate(self) -> None:
         """Sends a terminate signal."""
         if self._proc.returncode is None:
-            self._proc.terminate()
-
+            try:
+                os.kill(self._proc.pid, signal.SIGTERM)
+                os.killpg(self._proc.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
     async def kill(self) -> None:
         """Sends a kill signal."""
         if self._proc.returncode is None:
-            self._proc.kill()
-
+            try:                
+                os.kill(self._proc.pid, signal.SIGKILL)
+                os.killpg(self._proc.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
     async def int_term_kill(self, delay: int = 5) -> None:
         """Attempts to stop this component by sending signals in the following
         order: interrupt, terminate, kill."""
