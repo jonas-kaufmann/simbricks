@@ -467,7 +467,7 @@ class Gem5Host(HostSim):
         self.sys_clock = '1GHz'
         self.extra_main_args = []
         self.extra_config_args = []
-        self.variant = 'debug'
+        self.variant = 'fast'
         self.sync = True
 
     def resreq_cores(self) -> int:
