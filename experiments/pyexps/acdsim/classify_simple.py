@@ -211,6 +211,7 @@ for (
                 self.cpu_freq = "1200MHz"
                 self.cpu_type = "hpi"
                 self.variant = "fast"
+                self.mem_type = "LPDDR4_1066_1x32"
 
         HostClass = CustomGem5ArmHost
         experiment.checkpoint = True
