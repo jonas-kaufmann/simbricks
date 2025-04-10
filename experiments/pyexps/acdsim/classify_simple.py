@@ -260,9 +260,9 @@ for (
     # Instantiate and connect VTA PCIe-based accelerator to server
     if inference_device == node.TvmDeviceType.VTA:
         if rtl_variant == "verilator":
-            vta = sim.VTADev()
-            vta.batch = vta_batch
-            vta.block = vta_block
+            vta = sim.HierVtaVerilatorDev(
+                "vta", vta_clk_freq, log_opt == "l", 10 * 10**6
+            )
         elif rtl_variant == "gate":
             vta = sim.XsimDev(
                 "vta_xsim",

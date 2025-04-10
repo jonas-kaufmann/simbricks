@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import math
 import os
+import shlex
 import typing as tp
 
 from simbricks.orchestration import e2e_components as e2e
@@ -1356,6 +1357,72 @@ class XsimDev(PCIDevSim):
 
         with open(tcl_path, mode='w', encoding='utf-8') as file:
             file.writelines([f'{line}\n' for line in lines])
+
+
+class HierVtaVerilatorDev(PCIDevSim):
+
+    def __init__(
+        self, name: str, clk_freq_mhz: int, trace: bool, tracing_sampling_period_ns: int
+    ) -> None:
+        super().__init__()
+        self.name = name
+        self.clock_freq = clk_freq_mhz
+        """Clock frequency in MHz."""
+        self.trace = trace
+        """Whether to trace out waveform files."""
+        self.tracing_sampling_period_ns: int = tracing_sampling_period_ns
+        """Tracing sampling period in nanoseconds, after which a tracing is continued in the next file."""
+        # TODO (Jonas) change this
+        self.hier_vta_dir = "/home/jonask/Repos/simbricks/sims/external/hier_vta_synth"
+
+    def resreq_mem(self) -> int:
+        return 512  # this is a guess;
+
+    def resreq_cores(self):
+        return 1
+
+    def run_cmd(self, env: ExpEnv) -> str:
+        script_path = self._write_bash_script(env)
+        return script_path
+
+    def _write_bash_script(self, env: ExpEnv) -> str:
+        workdir = f"{env.workdir}/{self.full_name()}"
+        os.makedirs(workdir, exist_ok=True)
+        verilator_src_dir = f"{env.repodir}/sims/external/hier_vta_synth"
+        verilator_build_dir = f"{workdir}/build"
+        verilator_bin = f"{verilator_build_dir}/vta_sim"
+        
+        lines = [
+            "#!/bin/bash",
+            "set -e",
+        ]
+
+        # add verilator flags
+        vflags = [
+            f'-GSIMBRICKS_PCI_SOCKET=\\"{env.dev_pci_path(self)}\\"',
+            f'-GSHM_PATH=\\"{env.dev_shm_path(self)}\\"',
+            f"-GSYNC_PERIOD={self.sync_period}",
+            f"-GCLK_FREQ_MHZ={self.clock_freq}",
+            f"-GPCI_LATENCY={self.pci_latency}",
+        ]
+        vflags_str = shlex.quote(" ".join(vflags))
+        lines.append(f"export ADDITIONAL_VFLAGS={vflags_str}")
+        
+        # copy source directory to workdir and build
+        lines.append(f"cp -r {verilator_src_dir} {verilator_build_dir}")
+        lines.append(f"cd {verilator_build_dir}")
+        lines.append("source .envrc")
+        lines.append("make")
+
+        trace_file = f"{workdir}/verilator_trace"
+        lines.append(
+            f"{verilator_bin} {self.clock_freq} {int(self.trace)} {trace_file} {self.tracing_sampling_period_ns}"
+        )
+
+        script_path = f"{workdir}/compile_and_run.sh"
+        with open(script_path, mode="w", encoding="utf-8") as file:
+            file.writelines([f"{line}\n" for line in lines])
+        return f"bash {script_path}"
 
 
 class BasicMemDev(MemDevSim):
