@@ -56,6 +56,7 @@ images_arm64/kheaders.tar.bz2
 images_arm64/kernel/linux-*/
 experiments/build
 experiments/out
+experiments/out_thesis
 experiments/local-config.sh
 experiments/slurm
 dist/rdma/net_rdma
