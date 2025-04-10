@@ -19,11 +19,7 @@ inference_device_opts = [
 vta_clk_freq_opts = [100, 167]
 vta_batch_opts = [1]
 vta_block_opts = [16]
-model_name_opts = [
-    "resnet18_v1",
-    "resnet34_v1",
-    "resnet50_v1",
-]
+model_name_opts = ["resnet18", "resnet34", "resnet50", "resnet101"]
 core_opts = [1, 4]
 log_opts = ["l", "nl"]
 
@@ -40,9 +36,10 @@ class TvmClassifyLocal(node.AppConfig):
         self.batch_size = 1
         self.vta_batch = 1
         self.vta_block = 16
-        self.model_name = "resnet18_v1"
+        self.model_name = "resnet18"
         self.debug = True
         self.env_simulator = None
+        self.mxnet_dir = "/home/jonask/Repos/tvm-simbricks/mxnet"
 
     def config_files(self):
         # mount TVM inference script in simulated server under /tmp/guest
@@ -87,9 +84,7 @@ class TvmClassifyLocal(node.AppConfig):
     def run_cmds(self, node):
         cmds = []
         if self.target_device.is_cpu():
-            cmds.extend(
-                ["python3 -m tvm.exec.rpc_server --port=9091 &", "sleep 6"]
-            )
+            cmds.extend(["python3 -m tvm.exec.rpc_server --port=9091 &", "sleep 6"])
         else:
             cmds.extend(
                 [
@@ -112,7 +107,7 @@ class TvmClassifyLocal(node.AppConfig):
                 (
                     "python3 /tmp/guest/deploy_classification-infer.py"
                     " /root/mxnet"
-                    f" {self.target_device.value} {self.target_host.value} {self.model_name} /tmp/guest/cat.jpg"
+                    f" {self.target_device.value} {self.target_host.value} {self.model_name}_v1 /tmp/guest/cat.jpg"
                     f" {self.batch_size} {self.repetitions} {int(self.debug)} 0"
                 ),
                 "rm /tmp/vta_dry_run",
@@ -126,7 +121,7 @@ class TvmClassifyLocal(node.AppConfig):
                 (
                     "python3 /tmp/guest/deploy_classification-infer.py"
                     " /root/mxnet"
-                    f" {self.target_device.value} {self.target_host.value} {self.model_name} /tmp/guest/cat.jpg"
+                    f" {self.target_device.value} {self.target_host.value} {self.model_name}_v1 /tmp/guest/cat.jpg"
                     f" {self.batch_size} {self.repetitions} {int(self.debug)} 0"
                 ),
             ]
@@ -162,10 +157,7 @@ class VtaNode(node.NodeConfig):
                 "ip addr add 127.0.0.1/8 dev lo",
                 # Make VTA device available for control from user-space via
                 # VFIO
-                (
-                    "echo 1"
-                    " >/sys/module/vfio/parameters/enable_unsafe_noiommu_mode"
-                ),
+                ("echo 1" " >/sys/module/vfio/parameters/enable_unsafe_noiommu_mode"),
                 'echo "dead beef" >/sys/bus/pci/drivers/vfio-pci/new_id',
             ]
         )
@@ -266,7 +258,7 @@ for (
         elif rtl_variant == "gate":
             vta = sim.XsimDev(
                 "vta_xsim",
-                100,
+                vta_clk_freq,
                 "/local/jkaufman/vivado_vta/vivado_vta.sim/sim_1/synth/func/xsim/vta_sim_vlog.prj",
                 "vta_sim",
             )
@@ -276,7 +268,7 @@ for (
         elif rtl_variant == "rtl":
             vta = sim.XsimDev(
                 "vta_xsim_rtl",
-                100,
+                vta_clk_freq,
                 "/local/jkaufman/vivado_vta/vivado_vta.sim/sim_1/behav/xsim/vta_sim_behav_vlog.prj",
                 "vta_sim_behav",
             )
@@ -293,9 +285,7 @@ for (
             server.debug_messages = False
             server.start_ts = vta.start_tick = int(63 * 10**12)
 
-    server.pci_latency = server.sync_period = vta.pci_latency = (
-        vta.sync_period
-    ) = 200
+    server.pci_latency = server.sync_period = vta.pci_latency = vta.sync_period = 200
 
     # Add both simulators to experiment
     experiment.add_host(server)
