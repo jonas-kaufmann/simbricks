@@ -619,7 +619,7 @@ class Gem5ArmHost(HostSim):
                 cmd += ':sync'
             cmd += ' '
 
-        return cmd
+        return f'bash -c {shlex.quote(cmd)}'
 
 
 class SimicsHost(HostSim):
