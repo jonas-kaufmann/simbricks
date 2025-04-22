@@ -45,7 +45,7 @@ class TvmClassifyLocal(node.AppConfig):
         # mount TVM inference script in simulated server under /tmp/guest
         files = {
             "deploy_classification-infer.py": open(
-                "/home/jonask/Repos/tvm-simbricks/vta/tutorials/frontend/deploy_classification-infer.py",
+                "/home/jonask/Repos/tvm-simbricks/vta/tutorials/frontend/deploy_classification-infer_single.py",
                 "rb",
             ),
             "cat.jpg": open("/home/jonask/Downloads/cat.jpg", "rb"),
@@ -82,50 +82,30 @@ class TvmClassifyLocal(node.AppConfig):
         return cmds
 
     def run_cmds(self, node):
-        cmds = []
-        if self.target_device.is_cpu():
-            cmds.extend(["python3 -m tvm.exec.rpc_server --port=9091 &", "sleep 6"])
-        else:
-            cmds.extend(
-                [
-                    (
-                        f"VTA_DEVICE=0000:00:{(self.pci_vta_id):02x}.0"
-                        " VTA_DRY_RUN_FILE=/tmp/vta_dry_run python3 -m"
-                        " vta.exec.rpc_server --port=9091 &"
-                    ),
-                    "sleep 12",
-                ]
-            )
-        # define commands to run on simulated server
-        cmds.extend(
-            [
-                "export VTA_RPC_HOST=127.0.0.1",
-                "export VTA_RPC_PORT=9091",
-                "m5 checkpoint",
-                # run warmup inference
-                "touch /tmp/vta_dry_run",
-                (
-                    "python3 /tmp/guest/deploy_classification-infer.py"
-                    " /root/mxnet"
-                    f" {self.target_device.value} {self.target_host.value} {self.model_name}_v1 /tmp/guest/cat.jpg"
-                    f" {self.batch_size} {self.repetitions} {int(self.debug)} 0"
-                ),
-                "rm /tmp/vta_dry_run",
-            ]
-        )
+        cmds = [
+            "export VTA_RPC_HOST=127.0.0.1",
+            "export VTA_RPC_PORT=9091",
+            f"export VTA_DEVICE=0000:00:{(self.pci_vta_id):02x}.0",
+            "export VTA_DRY_RUN_FILE=/tmp/vta_dry_run",
+        ]
         if self.env_simulator is not None:
             cmds.append(f"export SIMULATOR={self.env_simulator}")
-            # run actual inference
-        cmds.extend(
-            [
-                (
-                    "python3 /tmp/guest/deploy_classification-infer.py"
-                    " /root/mxnet"
-                    f" {self.target_device.value} {self.target_host.value} {self.model_name}_v1 /tmp/guest/cat.jpg"
-                    f" {self.batch_size} {self.repetitions} {int(self.debug)} 0"
-                ),
-            ]
+
+        # RPC server
+        if self.target_device.is_cpu():
+            cmds.append("python3 -m tvm.exec.rpc_server --port=9091 &")
+            cmds.append("sleep 6")
+        else:
+            cmds.append("python3 -m vta.exec.rpc_server --port=9091 &")
+            cmds.append("sleep 12")
+
+        # inference script
+        cmds.append(
+            "python3 /tmp/guest/deploy_classification-infer.py /root/mxnet"
+            f" {self.target_device.value} {self.target_host.value} {self.model_name}_v1 /tmp/guest/cat.jpg"
+            f" {self.batch_size} {self.repetitions} {int(self.debug)} 0"
         )
+
         return cmds
 
 
@@ -232,7 +212,7 @@ for (
         server_cfg.disk_image += "-simics"
         server_cfg.kcmd_append = ""
     server_cfg.app = TvmClassifyLocal()
-    if host_var in ["gt", "gk", "ga"] and log_opt == "l":
+    if host_var in ["gt", "ga"]:
         server_cfg.app.env_simulator = "gem5"
     server_cfg.app.target_device = inference_device
     if inference_device.is_cpu():
