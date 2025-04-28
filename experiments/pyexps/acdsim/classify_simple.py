@@ -238,7 +238,7 @@ for (
     if inference_device == node.TvmDeviceType.VTA:
         if rtl_variant == "verilator":
             vta = sim.HierVtaVerilatorDev(
-                "vta", vta_clk_freq, log_opt == "l", 10 * 10**6
+                "vta", vta_clk_freq, log_opt == "l", 10 * 10**6, 1 * 10**6
             )
         elif rtl_variant == "gate":
             vta = sim.XsimDev(

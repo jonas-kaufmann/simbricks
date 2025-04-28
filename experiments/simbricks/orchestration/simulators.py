@@ -1363,7 +1363,12 @@ class XsimDev(PCIDevSim):
 class HierVtaVerilatorDev(PCIDevSim):
 
     def __init__(
-        self, name: str, clk_freq_mhz: int, trace: bool, tracing_sampling_period_ns: int
+        self,
+        name: str,
+        clk_freq_mhz: int,
+        trace: bool,
+        tracing_sampling_period_ns: int,
+        tracing_sample_length_ns: int,
     ) -> None:
         super().__init__()
         self.name = name
@@ -1373,14 +1378,11 @@ class HierVtaVerilatorDev(PCIDevSim):
         """Whether to trace out waveform files."""
         self.tracing_sampling_period_ns: int = tracing_sampling_period_ns
         """Tracing sampling period in nanoseconds, after which a tracing is continued in the next file."""
+        self.tracing_sample_length_ns = tracing_sample_length_ns
         # TODO (Jonas) change this
-        self.hier_vta_dir = "/home/jonask/Repos/simbricks/sims/external/hier_vta_synth"
-
-    def resreq_mem(self) -> int:
-        return 512  # this is a guess;
-
-    def resreq_cores(self):
-        return 1
+        self.hier_vta_dir = (
+            "/local/jkaufman/simbricks-acdsim/sims/external/hier_vta_synth"
+        )
 
     def run_cmd(self, env: ExpEnv) -> str:
         script_path = self._write_bash_script(env)
@@ -1392,7 +1394,7 @@ class HierVtaVerilatorDev(PCIDevSim):
         verilator_src_dir = f"{env.repodir}/sims/external/hier_vta_synth"
         verilator_build_dir = f"{workdir}/build"
         verilator_bin = f"{verilator_build_dir}/vta_sim"
-        
+
         lines = [
             "#!/bin/bash",
             "set -e",
@@ -1408,7 +1410,7 @@ class HierVtaVerilatorDev(PCIDevSim):
         ]
         vflags_str = shlex.quote(" ".join(vflags))
         lines.append(f"export ADDITIONAL_VFLAGS={vflags_str}")
-        
+
         # copy source directory to workdir and build
         lines.append(f"cp -r {verilator_src_dir} {verilator_build_dir}")
         lines.append(f"cd {verilator_build_dir}")
@@ -1417,7 +1419,7 @@ class HierVtaVerilatorDev(PCIDevSim):
 
         trace_file = f"{workdir}/verilator_trace"
         lines.append(
-            f"{verilator_bin} {self.clock_freq} {int(self.trace)} {trace_file} {self.tracing_sampling_period_ns}"
+            f"{verilator_bin} {self.clock_freq} {int(self.trace)} {trace_file} {self.tracing_sampling_period_ns} {self.tracing_sample_length_ns}"
         )
 
         script_path = f"{workdir}/compile_and_run.sh"

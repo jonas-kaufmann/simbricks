@@ -11,11 +11,11 @@
 #define VL_TRACE
 
 int main(int argc, char** argv, char**) {
-  if (argc != 5) {
+  if (argc != 6) {
     std::cerr << "usage: vta_sim <clock frequency in MHz> <enable tracing> "
                  "<path to waveform "
                  "file without .vcd suffix> <nanoseconds after which to write "
-                 "to next waveform file>"
+                 "to next waveform file> <number of nanoseconds per waveform file>"
               << std::endl;
     return 1;
   }
@@ -23,8 +23,10 @@ int main(int argc, char** argv, char**) {
   uint64_t clk_period_ps = 1000000 / clk_freq;
   bool do_trace = std::stoi(argv[2]);
   uint64_t sampling_period_ps = std::stoull(argv[4]) * 1000;
+  uint64_t sample_length_ps = std::stoull(argv[5]) * 1000;
   uint64_t trace_idx = 0;
   uint64_t next_trace_file_at_ps = sampling_period_ps;
+  uint64_t trace_until = sample_length_ps;
 
   const std::unique_ptr<VerilatedContext> contextp{new VerilatedContext};
   const std::unique_ptr<Vvta_sim> topp{new Vvta_sim{contextp.get(), ""}};
@@ -62,12 +64,15 @@ int main(int argc, char** argv, char**) {
     if (do_trace) {
       if (contextp->time() >= next_trace_file_at_ps) {
         next_trace_file_at_ps = contextp->time() + sampling_period_ps;
+        trace_until = contextp->time() + sample_length_ps;
         tfp->close();
         std::ostringstream trace_file_stream;
         trace_file_stream << argv[3] << "_" << ++trace_idx << ".vcd";
         tfp->open(trace_file_stream.str().c_str());
       }
-      tfp->dump(contextp->time());
+      if (contextp->time() < trace_until) {
+        tfp->dump(contextp->time());
+      }
     }
 #endif
     // Advance time
