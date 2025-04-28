@@ -56,7 +56,7 @@ class TvmClassifyLocal(node.AppConfig):
                 continue
             files[library] = open(f"{self.mxnet_dir}/{library}", "rb")
         files["cma_malloc.ko"] = open(
-            "/home/jonask/Repos/tvm-simbricks/3rdparty/cma_malloc/module/cma_malloc.ko",
+            "/home/jonask/Repos/tvm-simbricks/3rdparty/cma_malloc/module/cma_malloc_aarch64.ko",
             "rb",
         )
         return files
