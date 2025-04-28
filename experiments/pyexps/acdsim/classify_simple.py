@@ -96,10 +96,10 @@ class TvmClassifyLocal(node.AppConfig):
 
         # RPC server
         if self.target_device.is_cpu():
-            cmds.append("python3 -m tvm.exec.rpc_server --port=9091 &")
+            cmds.append("python3 -m tvm.exec.rpc_server --host=0.0.0.0 --port=9091 &")
             cmds.append("sleep 6")
         else:
-            cmds.append("python3 -m vta.exec.rpc_server --port=9091 &")
+            cmds.append("python3 -m vta.exec.rpc_server --host=0.0.0.0 --port=9091 &")
             cmds.append("sleep 12")
 
         # inference script
