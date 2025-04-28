@@ -40,6 +40,7 @@ class TvmClassifyLocal(node.AppConfig):
         self.debug = True
         self.env_simulator = None
         self.mxnet_dir = "/home/jonask/Repos/tvm-simbricks/mxnet"
+        self.trace = False
 
     def config_files(self):
         # mount TVM inference script in simulated server under /tmp/guest
@@ -90,6 +91,8 @@ class TvmClassifyLocal(node.AppConfig):
         ]
         if self.env_simulator is not None:
             cmds.append(f"export SIMULATOR={self.env_simulator}")
+        if self.trace:
+            cmds.append(f"export TRACE_ENABLED=1")
 
         # RPC server
         if self.target_device.is_cpu():
@@ -224,6 +227,7 @@ for (
     server_cfg.app.vta_block = vta_block
     server_cfg.app.model_name = model_name
     server_cfg.app.pci_vta_id = pci_vta_id
+    server_cfg.app.trace = log_opt == "l"
     server = HostClass(server_cfg)
     # Whether to synchronize VTA and server
     server.sync = sync
