@@ -24,7 +24,7 @@ compressed=$4
 mkdir -p input-$outname
 
 # add our qemu to $PATH
-export PATH="/home/jonask/Repos/simbricks/images_arm64/override_qemu:$PATH"
+export PATH="/local/jkaufman/simbricks-acdsim/images_arm64/override_qemu:$PATH"
 ./packer build \
     -var "syscores=$cores" \
     -var "memory=$mem" \

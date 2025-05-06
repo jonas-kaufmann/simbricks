@@ -39,24 +39,24 @@ class TvmClassifyLocal(node.AppConfig):
         self.model_name = "resnet18"
         self.debug = True
         self.env_simulator = None
-        self.mxnet_dir = "/home/jonask/Repos/tvm-simbricks/mxnet"
+        self.mxnet_dir = "/local/jkaufman/tvm-acdsim/mxnet"
         self.trace = False
 
     def config_files(self):
         # mount TVM inference script in simulated server under /tmp/guest
         files = {
             "deploy_classification-infer.py": open(
-                "/home/jonask/Repos/tvm-simbricks/vta/tutorials/frontend/deploy_classification-infer_single.py",
+                "/local/jkaufman/tvm-acdsim/vta/tutorials/frontend/deploy_classification-infer_single.py",
                 "rb",
             ),
-            "cat.jpg": open("/home/jonask/Downloads/cat.jpg", "rb"),
+            "cat.jpg": open("/local/jkaufman/cat.jpg", "rb"),
         }
         for library in os.listdir(self.mxnet_dir):
             if not library.endswith(".so"):
                 continue
             files[library] = open(f"{self.mxnet_dir}/{library}", "rb")
         files["cma_malloc.ko"] = open(
-            "/home/jonask/Repos/tvm-simbricks/3rdparty/cma_malloc/module/cma_malloc_aarch64.ko",
+            "/local/jkaufman/tvm-acdsim/3rdparty/cma_malloc/module/cma_malloc_aarch64.ko",
             "rb",
         )
         return files

@@ -162,7 +162,7 @@ for host_var in ['gem5_kvm', 'gem5_timing', 'qemu_icount', 'qemu_kvm', 'dummy']:
             jpeg_dev = sim.XsimDev(
                 'jpeg_decoder',
                 150,
-                '/home/jonask/Repos/vivado_jpgd/vivado_energy.sim/sim_1/synth/func/xsim/jpgd_sim_vlog.prj',
+                '/local/jkaufman/vivado_jpgd/vivado_energy.sim/sim_1/synth/func/xsim/jpgd_sim_vlog.prj',
                 'jpgd_sim'
             )
             # jpeg_dev.gui = True

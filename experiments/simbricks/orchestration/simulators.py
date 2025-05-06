@@ -1300,7 +1300,7 @@ class XsimDev(PCIDevSim):
         cmds.append(f'source {env.vivado_installdir}/settings64.sh')
         cmds.append(
             f'xelab --relax -prj {self.vivado_sim_prj_file} --debug wave --sv_root '
-            f'/home/jonask/Repos/vivado_jpgd/simbricks --sv_lib xsim_adapter '
+            f'/local/jkaufman/vivado_jpgd/simbricks --sv_lib xsim_adapter '
             f'-s simbricks_sim --incr {self._link_libs()} --generic_top '
             f'"SIMBRICKS_PCI_SOCKET={env.dev_pci_path(self)}" --generic_top '
             f'"SHM_PATH={env.dev_shm_path(self)}" --generic_top '
