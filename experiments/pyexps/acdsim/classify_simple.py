@@ -5,8 +5,27 @@ import simbricks.orchestration.simulators as sim
 import simbricks.orchestration.nodeconfig as node
 import itertools
 import os
+import enum
 
 experiments = []
+
+
+class TraceOpts(enum.Enum):
+    NONE = "n"
+    VCD = "v"
+    SAIF = "s"
+
+    def to_int(self) -> int:
+        if self == TraceOpts.VCD:
+            return 1
+        elif self == TraceOpts.SAIF:
+            return 2
+        else:
+            return 0
+
+    def is_trace(self) -> bool:
+        return self in {TraceOpts.VCD, TraceOpts.SAIF}
+
 
 # Experiment parameters
 host_variants = ["qk", "qt", "gt", "gk", "ga", "simics"]
@@ -21,7 +40,7 @@ vta_batch_opts = [1]
 vta_block_opts = [16]
 model_name_opts = ["resnet18", "resnet34", "resnet50", "resnet101"]
 core_opts = [1, 4]
-log_opts = ["l", "nl"]
+sampling_len_opts = [10, 100]
 
 
 class TvmClassifyLocal(node.AppConfig):
@@ -157,7 +176,8 @@ for (
     model_name,
     cores,
     rtl_variant,
-    log_opt,
+    trace_mode,
+    sampling_len,
 ) in itertools.product(
     host_variants,
     inference_device_opts,
@@ -167,10 +187,11 @@ for (
     model_name_opts,
     core_opts,
     rtl_variants,
-    log_opts,
+    [mode for mode in TraceOpts],
+    sampling_len_opts,
 ):
     experiment = exp.Experiment(
-        f"{model_name}-{inference_device.value}-{host_var}-{cores}-{vta_clk_freq}-{rtl_variant}-{log_opt}"
+        f"{model_name}-{inference_device.value}-{host_var}-{cores}-{vta_clk_freq}-{rtl_variant}-{trace_mode.value}{sampling_len}"
     )
     pci_vta_id = 2
     sync = False
@@ -227,7 +248,7 @@ for (
     server_cfg.app.vta_block = vta_block
     server_cfg.app.model_name = model_name
     server_cfg.app.pci_vta_id = pci_vta_id
-    server_cfg.app.trace = log_opt == "l"
+    server_cfg.app.trace = trace_mode.is_trace()
     server = HostClass(server_cfg)
     # Whether to synchronize VTA and server
     server.sync = sync
@@ -237,8 +258,13 @@ for (
     # Instantiate and connect VTA PCIe-based accelerator to server
     if inference_device == node.TvmDeviceType.VTA:
         if rtl_variant == "verilator":
+            sampling_period = 10 * 10**6
             vta = sim.HierVtaVerilatorDev(
-                "vta", vta_clk_freq, log_opt == "l", 10 * 10**6, 1 * 10**6
+                "vta",
+                vta_clk_freq,
+                trace_mode.to_int(),
+                sampling_period,
+                sampling_period * sampling_len // 100,
             )
         elif rtl_variant == "gate":
             vta = sim.XsimDev(
@@ -247,9 +273,11 @@ for (
                 "/local/jkaufman/vivado_vta/vivado_vta.sim/sim_1/synth/func/xsim/vta_sim_vlog.prj",
                 "vta_sim",
             )
-            if log_opt == "l":
+            if trace_mode.is_trace():
                 vta.saif_sampling_period_ns = 10 * 10**6
-                vta.saif_sampling_length_ns = 10 * 10**6
+                vta.saif_sampling_length_ns = (
+                    vta.saif_sampling_period_ns * sampling_len // 100
+                )
         elif rtl_variant == "rtl":
             vta = sim.XsimDev(
                 "vta_xsim_rtl",
@@ -258,9 +286,11 @@ for (
                 "vta_sim_behav",
             )
             vta.libs = []
-            if log_opt == "l":
+            if trace_mode.is_trace():
                 vta.saif_sampling_period_ns = 10 * 10**6
-                vta.saif_sampling_length_ns = 10 * 10**6
+                vta.saif_sampling_length_ns = (
+                    vta.saif_sampling_period_ns * sampling_len // 100
+                )
         else:
             raise NameError(f"Unknown rtl_variant {rtl_variant}")
         vta.clock_freq = vta_clk_freq

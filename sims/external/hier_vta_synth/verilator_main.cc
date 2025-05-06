@@ -1,35 +1,84 @@
+#define TRACE_MODE_NONE 0
+#define TRACE_MODE_VCD 1
+#define TRACE_MODE_SAIF 2
+
+#ifndef TRACE_MODE
+#define TRACE_MODE TRACE_MODE_VCD
+#endif
+
+#define TRACE_ENABLED \
+  TRACE_MODE == TRACE_MODE_VCD || TRACE_MODE == TRACE_MODE_SAIF
+
+#if TRACE_MODE == TRACE_MODE_VCD
+#include <verilated_vcd_c.h>
+#elif TRACE_MODE == TRACE_MODE_SAIF
+#include <verilated_saif_c.h>
+#endif
+
 #include <Vvta_sim.h>
+#include <sys/stat.h>
 #include <verilated.h>
 #include <verilated_vcd_c.h>
 
+#include <cerrno>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
+#include <memory>
 #include <ostream>
 #include <sstream>
 #include <string>
 
-#define VL_TRACE
+static std::unique_ptr<Vvta_sim> topp;
 
-int main(int argc, char** argv, char**) {
-  if (argc != 6) {
-    std::cerr << "usage: vta_sim <clock frequency in MHz> <enable tracing> "
-                 "<path to waveform "
-                 "file without .vcd suffix> <nanoseconds after which to write "
-                 "to next waveform file> <number of nanoseconds per waveform file>"
+static uint32_t trace_idx_next = 0;
+#if TRACE_MODE == TRACE_MODE_VCD
+static std::unique_ptr<VerilatedVcdC> tracer;
+#elif TRACE_MODE == TRACE_MODE_SAIF
+static std::unique_ptr<VerilatedSaifC> tracer;
+#endif
+
+#if TRACE_ENABLED
+void create_next_trace_file(char *base_filename) {
+  if (tracer) {
+    tracer->close();
+  }
+
+#if TRACE_MODE == TRACE_MODE_VCD
+  tracer = std::unique_ptr<VerilatedVcdC>(new VerilatedVcdC());
+#elif TRACE_MODE == TRACE_MODE_SAIF
+  tracer = std::unique_ptr<VerilatedSaifC>(new VerilatedSaifC());
+#endif
+  topp->trace(tracer.get(), 0);
+
+  std::ostringstream trace_file;
+  trace_file << base_filename << "_" << trace_idx_next++;
+#if TRACE_MODE == TRACE_MODE_VCD
+  trace_file << ".vcd";
+#elif TRACE_MODE == TRACE_MODE_SAIF
+  trace_file << ".saif";
+#endif
+  tracer->open(trace_file.str().c_str());
+}
+#endif
+
+int main(int argc, char **argv, char **) {
+  if (argc != 5) {
+    std::cerr << "usage: vta_sim <clock frequency in MHz> <path to trace file "
+                 "without suffix> <nanoseconds after which to write to next "
+                 "waveform file> <number of nanoseconds per waveform file>"
               << std::endl;
     return 1;
   }
   uint64_t clk_freq = std::stoull(argv[1]);
   uint64_t clk_period_ps = 1000000 / clk_freq;
-  bool do_trace = std::stoi(argv[2]);
-  uint64_t sampling_period_ps = std::stoull(argv[4]) * 1000;
-  uint64_t sample_length_ps = std::stoull(argv[5]) * 1000;
-  uint64_t trace_idx = 0;
+  uint64_t sampling_period_ps = std::stoull(argv[3]) * 1000;
+  uint64_t sample_length_ps = std::stoull(argv[4]) * 1000;
   uint64_t next_trace_file_at_ps = sampling_period_ps;
   uint64_t trace_until = sample_length_ps;
 
   const std::unique_ptr<VerilatedContext> contextp{new VerilatedContext};
-  const std::unique_ptr<Vvta_sim> topp{new Vvta_sim{contextp.get(), ""}};
+  topp = std::unique_ptr<Vvta_sim>(new Vvta_sim(contextp.get(), ""));
 
   // Reset design
   topp->rst = 1;
@@ -42,16 +91,9 @@ int main(int argc, char** argv, char**) {
   topp->rst = 0;
 
 // Set up tracing
-#ifdef VL_TRACE
-  const std::unique_ptr<VerilatedVcdC> tfp{new VerilatedVcdC};
-  if (do_trace) {
-    Verilated::traceEverOn(true);
-    topp->trace(tfp.get(), 0);
-    //   tfp->dumpvars(0, "vta_sim");
-    std::ostringstream trace_file_stream;
-    trace_file_stream << argv[3] << "_0.vcd";
-    tfp->open(trace_file_stream.str().c_str());
-  }
+#if TRACE_ENABLED
+  Verilated::traceEverOn(true);
+  create_next_trace_file(argv[2]);
 #endif
 
   // Simulate until $finish
@@ -59,31 +101,22 @@ int main(int argc, char** argv, char**) {
     // Evaluate model
     topp->clk = !topp->clk;
     topp->eval();
-// Trace
-#ifdef VL_TRACE
-    if (do_trace) {
-      if (contextp->time() >= next_trace_file_at_ps) {
-        next_trace_file_at_ps = contextp->time() + sampling_period_ps;
-        trace_until = contextp->time() + sample_length_ps;
-        tfp->close();
-        std::ostringstream trace_file_stream;
-        trace_file_stream << argv[3] << "_" << ++trace_idx << ".vcd";
-        tfp->open(trace_file_stream.str().c_str());
-      }
-      if (contextp->time() < trace_until) {
-        tfp->dump(contextp->time());
-      }
+#if TRACE_ENABLED
+    if (contextp->time() >= next_trace_file_at_ps) {
+      next_trace_file_at_ps = contextp->time() + sampling_period_ps;
+      trace_until = contextp->time() + sample_length_ps;
+      create_next_trace_file(argv[2]);
+    }
+    if (contextp->time() < trace_until) {
+      tracer->dump(contextp->time());
     }
 #endif
     // Advance time
     contextp->timeInc(clk_period_ps / 2);
   }
 
-// Close trace
-#ifdef VL_TRACE
-  if (do_trace) {
-    tfp->close();
-  }
+#if TRACE_ENABLED
+  tracer->close();
 #endif
 
   // Execute 'final' processes
