@@ -300,7 +300,7 @@ for (
             server.debug_messages = False
             server.start_ts = vta.start_tick = int(63 * 10**12)
 
-    server.pci_latency = server.sync_period = vta.pci_latency = vta.sync_period = 45
+    server.pci_latency = server.sync_period = vta.pci_latency = vta.sync_period = 65
 
     # Add both simulators to experiment
     experiment.add_host(server)
