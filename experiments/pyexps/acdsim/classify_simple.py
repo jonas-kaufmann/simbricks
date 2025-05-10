@@ -51,12 +51,9 @@ class TvmClassifyLocal(node.AppConfig):
         self.pci_vta_id = 0
         self.target_device = node.TvmDeviceType.VTA
         self.target_host = node.TvmDeviceType.CPU
-        self.repetitions = 1
-        self.batch_size = 1
         self.vta_batch = 1
         self.vta_block = 16
         self.model_name = "resnet18"
-        self.debug = True
         self.env_simulator = None
         self.mxnet_dir = "/local/jkaufman/tvm-acdsim/mxnet"
         self.trace = False
@@ -68,7 +65,14 @@ class TvmClassifyLocal(node.AppConfig):
                 "/local/jkaufman/tvm-acdsim/vta/tutorials/frontend/deploy_classification-infer_single.py",
                 "rb",
             ),
-            "cat.jpg": open("/local/jkaufman/cat.jpg", "rb"),
+            "cat.jpg": open("/local/jkaufman/Downloads/cat.jpg", "rb"),
+            "computer_keyboard.jpg": open(
+                "/local/jkaufman/Downloads/computer_keyboard.jpg", "rb"
+            ),
+            "golden_retriever.jpg": open(
+                "/local/jkaufman/Downloads/golden_retriever.jpg", "rb"
+            ),
+            "king_snake.jpg": open("/local/jkaufman/Downloads/king_snake.jpg", "rb"),
         }
         for library in os.listdir(self.mxnet_dir):
             if not library.endswith(".so"):
@@ -123,9 +127,9 @@ class TvmClassifyLocal(node.AppConfig):
 
         # inference script
         cmds.append(
-            "python3 /tmp/guest/deploy_classification-infer.py /root/mxnet"
-            f" {self.target_device.value} {self.target_host.value} {self.model_name}_v1 /tmp/guest/cat.jpg"
-            f" {self.batch_size} {self.repetitions} {int(self.debug)} 0"
+            "python3 /tmp/guest/deploy_classification-infer.py /root/mxnet "
+            f"{self.target_device.value} {self.target_host.value} {self.model_name}_v1 "
+            "/tmp/guest/cat.jpg /tmp/guest/computer_keyboard.jpg /tmp/guest/golden_retriever.jpg /tmp/guest/king_snake.jpg"
         )
 
         return cmds
@@ -191,7 +195,7 @@ for (
     sampling_len_opts,
 ):
     experiment = exp.Experiment(
-        f"{model_name}-{inference_device.value}-{host_var}-{cores}-{vta_clk_freq}-{rtl_variant}-{trace_mode.value}{sampling_len}"
+        f"{model_name}-{inference_device.value}-{host_var}-{cores}-{vta_clk_freq}-{vta_batch}x{vta_block}-{rtl_variant}-{trace_mode.value}{sampling_len}"
     )
     pci_vta_id = 2
     sync = False
