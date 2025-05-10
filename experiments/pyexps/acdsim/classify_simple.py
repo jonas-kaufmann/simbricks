@@ -35,7 +35,7 @@ inference_device_opts = [
     node.TvmDeviceType.CPU,
     node.TvmDeviceType.CPU_ARM64,
 ]
-vta_clk_freq_opts = [100, 167]
+vta_clk_freq_opts = [100, 175]
 vta_batch_opts = [1]
 vta_block_opts = [16]
 model_name_opts = ["resnet18", "resnet34", "resnet50", "resnet101"]
