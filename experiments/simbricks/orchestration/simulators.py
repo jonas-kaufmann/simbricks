@@ -1393,7 +1393,7 @@ class HierVtaVerilatorDev(PCIDevSim):
         os.makedirs(workdir, exist_ok=True)
         verilator_src_dir = f"{env.repodir}/sims/external/hier_vta_synth"
         verilator_build_dir = f"{workdir}/build"
-        verilator_bin = f"{verilator_build_dir}/vta_sim"
+        verilator_bin = f"{verilator_build_dir}/vta_sim_1x16_{self.clock_freq}"
 
         lines = [
             "#!/bin/bash",
@@ -1424,7 +1424,7 @@ class HierVtaVerilatorDev(PCIDevSim):
         lines.append(f"cp -r {verilator_src_dir} {verilator_build_dir}")
         lines.append(f"cd {verilator_build_dir}")
         lines.append("source .envrc")
-        lines.append("make")
+        lines.append(f"make vta_sim_1x16_{self.clock_freq}")
 
         trace_file = f"{workdir}/verilator_trace"
         lines.append(
@@ -1434,7 +1434,7 @@ class HierVtaVerilatorDev(PCIDevSim):
         script_path = f"{workdir}/compile_and_run.sh"
         with open(script_path, mode="w", encoding="utf-8") as file:
             file.writelines([f"{line}\n" for line in lines])
-        return f"bash {script_path}"
+        return f"setsid --wait bash {script_path}"
 
 
 class BasicMemDev(MemDevSim):
