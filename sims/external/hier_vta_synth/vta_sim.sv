@@ -133,7 +133,7 @@ module vta_sim
     );
 
     // instantiate main module
-    vta_base_VTAShell_wrapper_0_1 VTAShell_wrapper_0(
+    vta_base_VTAShell_wrapper_0_2 VTAShell_wrapper_0(
         .clock(clk),
         .m_axi_araddr(s_axi_araddr[48:0]),
         .m_axi_arburst(s_axi_arburst),
