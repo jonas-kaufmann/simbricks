@@ -11,6 +11,7 @@ cp cmake/config.cmake build
 cd build
 echo "set(USE_LLVM OFF)" >> config.cmake
 echo "set(SUMMARIZE ON)" >> config.cmake
+echo "set(CMAKE_BUILD_TYPE RelWithDebInfo)" >> config.cmake
 export CXXFLAGS="-D SIM_CTRL=1"
 cmake ..
 make -j`nproc` runtime vta
