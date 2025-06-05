@@ -123,7 +123,7 @@ class TvmClassifyLocal(node.AppConfig):
             cmds.append("sleep 6")
         else:
             cmds.append("python3 -m vta.exec.rpc_server --host=0.0.0.0 --port=9091 &")
-            cmds.append("sleep 12")
+            cmds.append("sleep 15")
 
         # inference script
         cmds.append(
