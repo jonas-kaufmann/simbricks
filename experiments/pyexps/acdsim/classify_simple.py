@@ -217,7 +217,7 @@ for (
             def __init__(self, node_config: sim.NodeConfig) -> None:
                 super().__init__(node_config)
                 self.cpu_freq = "1200MHz"
-                self.cpu_type = "hpi"
+                self.cpu_type = "hpi_a53"
                 self.variant = "fast"
                 self.mem_type = "LPDDR4_1066_1x32"
 
