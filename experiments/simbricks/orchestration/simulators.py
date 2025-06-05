@@ -1409,7 +1409,7 @@ class HierVtaVerilatorDev(PCIDevSim):
             f"-GPCI_LATENCY={self.pci_latency}",
         ]
         if self.trace_mode == 1:
-            vflags.extend(["--trace-vcd", "--no-trace-top", "--trace-depth 1"])
+            vflags.extend(["--trace-vcd", "--no-trace-top", "--trace-depth 2"])
         elif self.trace_mode == 2:
             vflags.extend(["--trace-saif", "--no-trace-top"])
         vflags_str = shlex.quote(" ".join(vflags))
