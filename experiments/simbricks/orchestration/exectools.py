@@ -378,7 +378,7 @@ class LocalExecutor(Executor):
         return SimpleComponent(label, parts, **kwargs)
 
     async def await_file(
-        self, path: str, delay=0.05, verbose=False, timeout=1800
+        self, path: str, delay=0.05, verbose=False, timeout=3600
     ) -> None:
         if verbose:
             print(f'await_file({path})')
