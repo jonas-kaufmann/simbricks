@@ -5,26 +5,8 @@ import simbricks.orchestration.simulators as sim
 import simbricks.orchestration.nodeconfig as node
 import itertools
 import os
-import enum
 
 experiments = []
-
-
-class TraceOpts(enum.Enum):
-    NONE = "n"
-    VCD = "v"
-    SAIF = "s"
-
-    def to_int(self) -> int:
-        if self == TraceOpts.VCD:
-            return 1
-        elif self == TraceOpts.SAIF:
-            return 2
-        else:
-            return 0
-
-    def is_trace(self) -> bool:
-        return self in {TraceOpts.VCD, TraceOpts.SAIF}
 
 
 # Experiment parameters
@@ -191,7 +173,7 @@ for (
     model_name_opts,
     core_opts,
     rtl_variants,
-    [mode for mode in TraceOpts],
+    [mode for mode in sim.HierVtaVerilatorDev.TraceOpts],
     sampling_len_opts,
 ):
     experiment = exp.Experiment(
@@ -266,7 +248,7 @@ for (
             vta = sim.HierVtaVerilatorDev(
                 "vta",
                 vta_clk_freq,
-                trace_mode.to_int(),
+                trace_mode,
                 sampling_period,
                 sampling_period * sampling_len // 100,
             )
@@ -277,7 +259,7 @@ for (
                 "/local/jkaufman/vivado_vta/vivado_vta.sim/sim_1/synth/func/xsim/vta_sim_vlog.prj",
                 "vta_sim",
             )
-            if trace_mode.is_trace():
+            if trace_mode:
                 vta.saif_sampling_period_ns = 10 * 10**6
                 vta.saif_sampling_length_ns = (
                     vta.saif_sampling_period_ns * sampling_len // 100
@@ -290,7 +272,7 @@ for (
                 "vta_sim_behav",
             )
             vta.libs = []
-            if trace_mode.is_trace():
+            if trace_mode:
                 vta.saif_sampling_period_ns = 10 * 10**6
                 vta.saif_sampling_length_ns = (
                     vta.saif_sampling_period_ns * sampling_len // 100

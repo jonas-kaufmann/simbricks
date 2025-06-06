@@ -23,6 +23,7 @@
 # Allow own class to be used as type for a method's argument
 from __future__ import annotations
 
+import enum
 import math
 import os
 import shlex
@@ -1362,11 +1363,35 @@ class XsimDev(PCIDevSim):
 
 class HierVtaVerilatorDev(PCIDevSim):
 
+    class TraceOpts(enum.Enum):
+        NONE = "n"
+        VCD = "v"
+        SAIF = "s"
+
+        def to_int(self) -> int:
+            if self == HierVtaVerilatorDev.TraceOpts.VCD:
+                return 1
+            elif self == HierVtaVerilatorDev.TraceOpts.SAIF:
+                return 2
+            else:
+                return 0
+
+        def to_full_str(self) -> str:
+            if self == HierVtaVerilatorDev.TraceOpts.VCD:
+                return "vcd_trace"
+            elif self == HierVtaVerilatorDev.TraceOpts.SAIF:
+                return "saif_trace"
+            else:
+                return "no_trace"
+
+        def is_trace(self) -> bool:
+            return self in {HierVtaVerilatorDev.TraceOpts.VCD, HierVtaVerilatorDev.TraceOpts.SAIF}
+
     def __init__(
         self,
         name: str,
         clk_freq_mhz: int,
-        trace_mode: int,
+        trace_mode: TraceOpts,
         sampling_period_ns: int,
         sampling_len_ns: int,
     ) -> None:
@@ -1385,8 +1410,24 @@ class HierVtaVerilatorDev(PCIDevSim):
         )
 
     def run_cmd(self, env: ExpEnv) -> str:
-        script_path = self._write_bash_script(env)
-        return script_path
+        # script_path = self._write_bash_script(env)
+        bin = f"{env.repodir}/sims/external/hier_vta_synth/vta_sim_1x16_{self.clock_freq}_{self.trace_mode.to_full_str()}"
+        workdir = f"{env.workdir}/{self.full_name()}"
+        trace_file = f"{workdir}/verilator_trace"
+        args = [
+            str(self.clock_freq),
+            trace_file,
+            str(self.sampling_period_ns),
+            str(self.sampling_len_ns),
+            f"+PCI_SOCKET={env.dev_pci_path(self)}",
+            f"+SHM_PATH={env.dev_shm_path(self)}",
+            f"+SYNC_PERIOD={self.sync_period}",
+            f"+PCI_LATENCY={self.pci_latency}",
+            f"+CLK_FREQ_MHZ={self.clock_freq}"
+        ]
+        args_quoted = [shlex.quote(arg) for arg in args]
+        args_all = " ".join(args_quoted)
+        return f"{bin} {args_all}"
 
     def _write_bash_script(self, env: ExpEnv) -> str:
         workdir = f"{env.workdir}/{self.full_name()}"

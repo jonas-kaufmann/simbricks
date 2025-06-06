@@ -4,15 +4,39 @@ LIBSIMBRICKS := $(SIMBRICKS_LIB_DIR)/libsimbricks.a
 ADDITIONAL_CFLAGS ?=
 ADDITIONAL_VFLAGS ?=
 CFLAGS := -I$(SIMBRICKS_LIB_DIR) -std=c++17 $(ADDITIONAL_CFLAGS)
-VFLAGS := -Wno-fatal --threads 1 --verilate-jobs 4 --build-jobs 4 -O3
+VFLAGS := -Wno-fatal --threads 1 -j `nproc` -O3
 
-vta_sim_1x16_100: vta_sim.sv vta_synth_1x16_100.v m_axil_adapter.sv s_axi_adapter.sv verilator_adapter.cc verilator_main.cc /local/jkaufman/simbricks-acdsim/lib/libsimbricks.a
-	verilator -j `nproc` --top-module vta_sim -CFLAGS "${CFLAGS}" -y $(abspath ./verilator_xilinx) ${VFLAGS} ${ADDITIONAL_VFLAGS} --binary --build --exe -o $(abspath $@) $^
+NO_TRACE_CFLAGS := $(CFLAGS) $(ADDITIONAL_CFLAGS) -DTRACE_MODE=0
+NO_TRACE_VFLAGS := $(VFLAGS) $(ADDITIONAL_VFLAGS)
+VCD_TRACE_CFLAGS := $(CFLAGS) $(ADDITIONAL_CFLAGS) -DTRACE_MODE=1
+VCD_TRACE_VFLAGS := $(VFLAGS) $(ADDITIONAL_VFLAGS) --trace-vcd --no-trace-top --trace-depth 2
+SAIF_TRACE_CFLAGS := $(CFLAGS) $(ADDITIONAL_CFLAGS) -DTRACE_MODE=2
+SAIF_TRACE_VFLAGS := $(VFLAGS) $(ADDITIONAL_VFLAGS) --trace-saif --no-trace-top
 
-vta_sim_1x16_174: vta_sim.sv vta_synth_1x16_174.v m_axil_adapter.sv s_axi_adapter.sv verilator_adapter.cc verilator_main.cc /local/jkaufman/simbricks-acdsim/lib/libsimbricks.a
-	verilator -j `nproc` --top-module vta_sim -CFLAGS "${CFLAGS}" -y $(abspath ./verilator_xilinx) ${VFLAGS} ${ADDITIONAL_VFLAGS} --binary --build --exe -o $(abspath $@) $^
+
+BIN := vta_sim_1x16_100_no_trace vta_sim_1x16_174_no_trace vta_sim_1x16_100_vcd_trace vta_sim_1x16_174_vcd_trace vta_sim_1x16_100_saif_trace vta_sim_1x16_174_saif_trace
+
+all: $(BIN)
+
+vta_sim_1x16_100_no_trace: vta_sim.sv vta_synth_1x16_100.v m_axil_adapter.sv s_axi_adapter.sv verilator_adapter.cc verilator_main.cc /local/jkaufman/simbricks-acdsim/lib/libsimbricks.a
+	verilator --top-module vta_sim -CFLAGS "${NO_TRACE_CFLAGS}" -y $(abspath ./verilator_xilinx) ${NO_TRACE_VFLAGS} --binary --build --exe -o $(abspath $@) $^
+
+vta_sim_1x16_174_no_trace: vta_sim.sv vta_synth_1x16_174.v m_axil_adapter.sv s_axi_adapter.sv verilator_adapter.cc verilator_main.cc /local/jkaufman/simbricks-acdsim/lib/libsimbricks.a
+	verilator --top-module vta_sim -CFLAGS "${NO_TRACE_CFLAGS}" -y $(abspath ./verilator_xilinx) ${NO_TRACE_VFLAGS} --binary --build --exe -o $(abspath $@) $^
+
+vta_sim_1x16_100_vcd_trace: vta_sim.sv vta_synth_1x16_100.v m_axil_adapter.sv s_axi_adapter.sv verilator_adapter.cc verilator_main.cc /local/jkaufman/simbricks-acdsim/lib/libsimbricks.a
+	verilator --top-module vta_sim -CFLAGS "${VCD_TRACE_CFLAGS}" -y $(abspath ./verilator_xilinx) ${VCD_TRACE_VFLAGS} --binary --build --exe -o $(abspath $@) $^
+
+vta_sim_1x16_174_vcd_trace: vta_sim.sv vta_synth_1x16_174.v m_axil_adapter.sv s_axi_adapter.sv verilator_adapter.cc verilator_main.cc /local/jkaufman/simbricks-acdsim/lib/libsimbricks.a
+	verilator --top-module vta_sim -CFLAGS "${VCD_TRACE_CFLAGS}" -y $(abspath ./verilator_xilinx) ${VCD_TRACE_VFLAGS} --binary --build --exe -o $(abspath $@) $^
+
+vta_sim_1x16_100_saif_trace: vta_sim.sv vta_synth_1x16_100.v m_axil_adapter.sv s_axi_adapter.sv verilator_adapter.cc verilator_main.cc /local/jkaufman/simbricks-acdsim/lib/libsimbricks.a
+	verilator --top-module vta_sim -CFLAGS "${SAIF_TRACE_CFLAGS}" -y $(abspath ./verilator_xilinx) ${SAIF_TRACE_VFLAGS} --binary --build --exe -o $(abspath $@) $^
+
+vta_sim_1x16_174_saif_trace: vta_sim.sv vta_synth_1x16_174.v m_axil_adapter.sv s_axi_adapter.sv verilator_adapter.cc verilator_main.cc /local/jkaufman/simbricks-acdsim/lib/libsimbricks.a
+	verilator --top-module vta_sim -CFLAGS "${SAIF_TRACE_CFLAGS}" -y $(abspath ./verilator_xilinx) ${SAIF_TRACE_VFLAGS} --binary --build --exe -o $(abspath $@) $^
 
 clean:
-	rm -rf vta_sim_1x16_100 vta_sim_1x16_174 obj_dir
+	rm -rf ${BIN} obj_dir
 
-.PHONY: vta_sim clean
+.PHONY: all $(BIN) clean

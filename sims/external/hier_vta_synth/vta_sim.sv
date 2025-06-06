@@ -1,19 +1,16 @@
 `timescale 1ps / 1ps
 
-module vta_sim
-#(
-    parameter SIMBRICKS_PCI_SOCKET = "/path/to/socket",
-    parameter SHM_PATH = "/path/to/shm",
-    parameter SYNC_PERIOD = 500,
-    parameter PCI_LATENCY = 500,
-    parameter CLK_FREQ_MHZ = 150
-)
-(
+module vta_sim(
     input clk,
     input rst
-);      
-    localparam CLK_PERIOD_PS = 1000000 / CLK_FREQ_MHZ;
-    
+);
+    string pci_socket_str;
+    string shm_path_str;
+    longint sync_period;
+    longint pci_latency;
+    longint clk_freq_mhz;
+    longint clk_period_ps;
+
     import "DPI-C" function void simbricks_init(
         input string pci_socket,
         input string shm_path,
@@ -135,6 +132,7 @@ module vta_sim
     // instantiate main module
     vta_base_VTAShell_wrapper_0_2 VTAShell_wrapper_0(
         .clock(clk),
+        .reset(rst),
         .m_axi_araddr(s_axi_araddr[48:0]),
         .m_axi_arburst(s_axi_arburst),
         .m_axi_arid(s_axi_arid),
@@ -164,7 +162,6 @@ module vta_sim
         .m_axi_wready(s_axi_wready),
         .m_axi_wstrb(s_axi_wstrb),
         .m_axi_wvalid(s_axi_wvalid),
-        .reset(rst),
         .s_axi_araddr(m_axil_araddr),
         .s_axi_arready(m_axil_arready),
         .s_axi_arvalid(m_axil_arvalid),
@@ -183,17 +180,35 @@ module vta_sim
         .s_axi_wstrb(m_axil_wstrb),
         .s_axi_wvalid(m_axil_wvalid)
     );
-    
+
     initial begin
+        if (!$value$plusargs("PCI_SOCKET=%s", pci_socket_str)) begin
+            $fatal(1, "Missing required +PCI_SOCKET=<value> argument");
+        end
+        if (!$value$plusargs("SHM_PATH=%s", shm_path_str)) begin
+            $fatal(1, "Missing required +SHM_PATH=<value> argument");
+        end
+        if (!$value$plusargs("SYNC_PERIOD=%d", sync_period)) begin
+            $fatal(1, "Missing required +SYNC_PERIOD=<value> argument");
+        end
+        if (!$value$plusargs("PCI_LATENCY=%d", pci_latency)) begin
+            $fatal(1, "Missing required +PCI_LATENCY=<value> argument");
+        end
+        if (!$value$plusargs("CLK_FREQ_MHZ=%d", clk_freq_mhz)) begin
+            $fatal(1, "Missing required +CLK_FREQ_MHZ=<value> argument");
+        end
+
+        clk_period_ps = 1000000 / clk_freq_mhz;
+
         simbricks_init(
-            SIMBRICKS_PCI_SOCKET,
-            SHM_PATH,
-            SYNC_PERIOD,
-            PCI_LATENCY,
-            CLK_FREQ_MHZ
+            pci_socket_str,
+            shm_path_str,
+            sync_period,
+            pci_latency,
+            clk_freq_mhz
         );
     end
-        
+
     always @(posedge clk) begin
         if (simbricks_is_exit()) begin
             $display("Got exit signal from SimBricks adapter.");

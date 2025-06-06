@@ -63,10 +63,10 @@ void create_next_trace_file(char *base_filename) {
 #endif
 
 int main(int argc, char **argv, char **) {
-  if (argc != 5) {
+  if (argc < 5) {
     std::cerr << "usage: vta_sim <clock frequency in MHz> <path to trace file "
                  "without suffix> <nanoseconds after which to write to next "
-                 "waveform file> <number of nanoseconds per waveform file>"
+                 "waveform file> <number of nanoseconds per waveform file> [plusargs...]"
               << std::endl;
     return 1;
   }
@@ -78,6 +78,7 @@ int main(int argc, char **argv, char **) {
   uint64_t trace_until = sample_length_ps;
 
   const std::unique_ptr<VerilatedContext> contextp{new VerilatedContext};
+  contextp->commandArgs(argc, argv);
   topp = std::unique_ptr<Vvta_sim>(new Vvta_sim(contextp.get(), ""));
 
   // Reset design
