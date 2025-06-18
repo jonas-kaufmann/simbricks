@@ -151,8 +151,8 @@ def parse_args() -> argparse.Namespace:
         '--shmdir',
         metavar='DIR',
         type=str,
-        default=None,
-        help='Shared memory directory base (workdir if not set)'
+        default="/dev/shm",
+        help='Shared memory directory base (/dev/shm if not set)'
     )
 
     # arguments for the parallel runtime
