@@ -98,6 +98,7 @@ int main(int argc, char **argv, char **) {
 #endif
 
   // Simulate until $finish
+  uint64_t trace_start = contextp->time();
   while (!contextp->gotFinish()) {
     // Evaluate model
     topp->clk = !topp->clk;
@@ -105,11 +106,12 @@ int main(int argc, char **argv, char **) {
 #if TRACE_ENABLED
     if (contextp->time() >= next_trace_file_at_ps) {
       next_trace_file_at_ps = contextp->time() + sampling_period_ps;
+      trace_start = contextp->time();
       trace_until = contextp->time() + sample_length_ps;
       create_next_trace_file(argv[2]);
     }
     if (contextp->time() < trace_until) {
-      tracer->dump(contextp->time());
+      tracer->dump(contextp->time() - trace_start);
     }
 #endif
     // Advance time
