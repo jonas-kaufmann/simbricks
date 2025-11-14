@@ -1,0 +1,23 @@
+{
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "runArgs": [
+        "--device=/dev/kvm"
+    ],
+    "postStartCommand": "sudo chmod o+rw /dev/kvm",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "eeyore.yapf",
+                "llvm-vs-code-extensions.vscode-clangd",
+                "ms-python.python",
+                "ms-vscode.cpptools-themes",
+                "ms-vscode.cpptools",
+                "mshr-h.veriloghdl",
+                "stkb.rewrap",
+                "surfer-project.surfer"
+            ]
+        }
+    }
+}
