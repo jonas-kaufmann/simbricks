@@ -10,6 +10,7 @@ RUN apt-get update \
     clang-20 \
     clangd-20 \
     cmake \
+    direnv \
     flex \
     graphviz \
     kmod \
@@ -41,4 +42,5 @@ RUN apt-get update \
     wget \
  && locale-gen en_US.UTF-8 \
  && rm -rf /var/lib/apt/lists/* \
- && update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-20 200
+ && update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-20 200 \
+ && echo 'eval "$(direnv hook bash)"' >> /home/vscode/.bashrc
