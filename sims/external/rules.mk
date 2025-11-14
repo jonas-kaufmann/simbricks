@@ -31,7 +31,8 @@ EXTERNAL_SIMS_DIR := $(d)
 $(eval $(call subdir,simics))
 
 external: $(d)gem5/ready $(d)qemu/ready $(d)ns-3/ready $(d)femu/ready $(d)bmv2/ready
-.PHONY: external gem5-clean qemu-clean ns-3-clean femu-clean bmv2-clean $(d)gem5/ready $(d)gem5/ready_arm
+.PHONY: external gem5-clean qemu-clean ns-3-clean femu-clean bmv2-clean \
+	$(d)gem5/ready $(d)gem5/ready_opt_arm $(d)gem5/ready_fast_arm
 
 
 
@@ -45,7 +46,14 @@ $(d)gem5/ready: $(d)gem5
 		scons build/X86/gem5.$(GEM5_VARIANT) \
 		--ignore-style -j`nproc` --linker=mold
 
-$(d)gem5/ready_arm: $(d)gem5
+$(d)gem5/ready_opt_arm: $(d)gem5
+	cd $< && \
+		CCFLAGS_EXTRA="-I$(abspath $(lib_dir))" \
+		LIBRARY_PATH="$(abspath $(lib_dir))" \
+		scons build/ARM/gem5.opt \
+		--ignore-style -j`nproc` --linker=mold
+
+$(d)gem5/ready_fast_arm: $(d)gem5
 	cd $< && \
 		CCFLAGS_EXTRA="-I$(abspath $(lib_dir))" \
 		LIBRARY_PATH="$(abspath $(lib_dir))" \
