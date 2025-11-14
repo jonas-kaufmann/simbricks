@@ -16,3 +16,6 @@
 [submodule "sims/external/hier_vta_synth/verilator_xilinx"]
 	path = sims/external/hier_vta_synth/verilator_xilinx
 	url = https://github.com/jonas-kaufmann/verilator_xilinx.git
+[submodule "sims/external/verilator"]
+	path = sims/external/verilator
+	url = https://github.com/jonas-kaufmann/verilator.git

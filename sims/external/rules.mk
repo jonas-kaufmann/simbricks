@@ -32,7 +32,8 @@ $(eval $(call subdir,simics))
 
 external: $(d)gem5/ready $(d)qemu/ready $(d)ns-3/ready $(d)femu/ready $(d)bmv2/ready
 .PHONY: external gem5-clean qemu-clean ns-3-clean femu-clean bmv2-clean \
-	$(d)gem5/ready $(d)gem5/ready_opt_arm $(d)gem5/ready_fast_arm
+	$(d)gem5/ready $(d)gem5/ready_opt_arm $(d)gem5/ready_fast_arm \
+	$(d)verilator/ready
 
 
 
@@ -128,6 +129,14 @@ $(d)bmv2/ready: $(d)bmv2 $(lib_netif)
 bmv2-clean:
 	-cd $(EXTERNAL_SIMS_DIR)bmv2 && $(MAKE) clean
 	rm -f $(EXTERNAL_SIMS_DIR)bmv2/ready
+
+$(d)verilator/ready: CC=clang-20
+$(d)verilator/ready: CXX=clang++-20
+$(d)verilator/ready: $(d)verilator
+	+cd $< \
+		&& autoconf \
+		&& ./configure \
+		&& $(MAKE)
 
 DISTCLEAN := $(d)gem5 $(d)qemu $(d)ns-3 $(d)femu
 EXTERNAL_CLEAN_TASKS := gem5-clean qemu-clean ns-3-clean femu-clean bmv2-clean

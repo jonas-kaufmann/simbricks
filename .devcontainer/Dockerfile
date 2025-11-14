@@ -6,6 +6,7 @@ RUN apt-get update \
     apt-get install -y --no-install-recommends \
     autoconf \
     bear \
+    bison \
     build-essential \
     clang-20 \
     clangd-20 \
@@ -13,12 +14,15 @@ RUN apt-get update \
     direnv \
     flex \
     graphviz \
+    help2man \
     kmod \
     libboost-coroutine-dev \
     libboost-fiber-dev \
     libboost-iostreams-dev \
     libboost-program-options-dev \
     libelf-dev \
+    libfl-dev \
+    libfl2 \
     libglib2.0-dev \
     libgmp-dev \
     libgoogle-perftools-dev \
@@ -31,6 +35,8 @@ RUN apt-get update \
     locales \
     mold \
     ninja-build \
+    perl \
+    perl-doc \
     protobuf-compiler \
     python-is-python3 \
     python3 \
@@ -40,6 +46,8 @@ RUN apt-get update \
     scons \
     unzip \
     wget \
+    zlib1g \
+    zlib1g-dev \
  && locale-gen en_US.UTF-8 \
  && rm -rf /var/lib/apt/lists/* \
  && update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-20 200 \
