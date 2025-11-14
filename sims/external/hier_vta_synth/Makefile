@@ -1,10 +1,12 @@
 SIMBRICKS_LIB_DIR := /local/jkaufman/simbricks-acdsim/lib
 LIBSIMBRICKS := $(SIMBRICKS_LIB_DIR)/libsimbricks.a
 
+CC := clang-20
+CXX := clang++-20
 ADDITIONAL_CFLAGS ?=
 ADDITIONAL_VFLAGS ?=
 CFLAGS := -I$(SIMBRICKS_LIB_DIR) -std=c++17 $(ADDITIONAL_CFLAGS)
-VFLAGS := -Wno-fatal --threads 1 -j `nproc` -O3
+VFLAGS := -Wno-fatal --threads 2 -j `nproc` -O3 --compiler clang -MAKEFLAGS "OPT=-march=native"
 
 NO_TRACE_CFLAGS := $(CFLAGS) $(ADDITIONAL_CFLAGS) -DTRACE_MODE=0
 NO_TRACE_VFLAGS := $(VFLAGS) $(ADDITIONAL_VFLAGS)
