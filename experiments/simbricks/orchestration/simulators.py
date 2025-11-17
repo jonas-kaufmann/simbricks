@@ -1404,14 +1404,10 @@ class HierVtaVerilatorDev(PCIDevSim):
         self.sampling_period_ns: int = sampling_period_ns
         """Tracing sampling period in nanoseconds, after which a tracing is continued in the next file."""
         self.sampling_len_ns = sampling_len_ns
-        # TODO (Jonas) change this
-        self.hier_vta_dir = (
-            "/local/jkaufman/simbricks-acdsim/sims/external/hier_vta_synth"
-        )
 
     def run_cmd(self, env: ExpEnv) -> str:
         # script_path = self._write_bash_script(env)
-        bin = f"{env.repodir}/sims/external/hier_vta_synth/vta_sim_1x16_{self.clock_freq}_{self.trace_mode.to_full_str()}"
+        bin = f"{env.repodir}/sims/external/vta/vta_sim_1x16_{self.clock_freq}_{self.trace_mode.to_full_str()}"
         workdir = f"{env.workdir}/{self.full_name()}"
         trace_file = f"{workdir}/verilator_trace"
         args = [
