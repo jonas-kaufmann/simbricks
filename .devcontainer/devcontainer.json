@@ -5,6 +5,9 @@
     "runArgs": [
         "--device=/dev/kvm"
     ],
+    "mounts": [
+        "source=${localWorkspaceFolder}/../tvm-acdsim,target=/workspaces/tvm,type=bind,ro"
+    ],
     "postStartCommand": "sudo chmod o+rw /dev/kvm",
     "customizations": {
         "vscode": {
