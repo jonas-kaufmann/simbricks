@@ -243,8 +243,9 @@ for (
 
     # Instantiate and connect VTA PCIe-based accelerator to server
     if inference_device == node.TvmDeviceType.VTA:
-        if rtl_variant == "verilator":
-            sampling_period = 10 * 10**6
+        # sampling_period = 10 * 10**6
+        sampling_period = 1 * 10**6
+        if rtl_variant == "synth":
             vta = sim.HierVtaVerilatorDev(
                 "vta",
                 vta_clk_freq,
@@ -252,31 +253,6 @@ for (
                 sampling_period,
                 sampling_period * sampling_len // 100,
             )
-        elif rtl_variant == "gate":
-            vta = sim.XsimDev(
-                "vta_xsim",
-                vta_clk_freq,
-                "/local/jkaufman/vivado_vta/vivado_vta.sim/sim_1/synth/func/xsim/vta_sim_vlog.prj",
-                "vta_sim",
-            )
-            if trace_mode:
-                vta.saif_sampling_period_ns = 10 * 10**6
-                vta.saif_sampling_length_ns = (
-                    vta.saif_sampling_period_ns * sampling_len // 100
-                )
-        elif rtl_variant == "rtl":
-            vta = sim.XsimDev(
-                "vta_xsim_rtl",
-                vta_clk_freq,
-                "/local/jkaufman/vivado_vta/vivado_vta.sim/sim_1/behav/xsim/vta_sim_behav_vlog.prj",
-                "vta_sim_behav",
-            )
-            vta.libs = []
-            if trace_mode:
-                vta.saif_sampling_period_ns = 10 * 10**6
-                vta.saif_sampling_length_ns = (
-                    vta.saif_sampling_period_ns * sampling_len // 100
-                )
         else:
             raise NameError(f"Unknown rtl_variant {rtl_variant}")
         vta.clock_freq = vta_clk_freq

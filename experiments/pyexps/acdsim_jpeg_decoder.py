@@ -124,7 +124,7 @@ class JpegDecoderWorkload(node.AppConfig):
 
 experiments: tp.List[exp.Experiment] = []
 for host_var in ['gem5_kvm', 'gem5_timing', 'qemu_icount', 'qemu_kvm', 'dummy']:
-    for jpeg_var in ['rtl', 'xsim']:
+    for jpeg_var in ['rtl']:
         e = exp.Experiment(f'acdsim_jpeg_decoder-{host_var}-{jpeg_var}')
         node_cfg = node.NodeConfig()
         node_cfg.kcmd_append = 'memmap=512M!1G'
@@ -172,15 +172,6 @@ for host_var in ['gem5_kvm', 'gem5_timing', 'qemu_icount', 'qemu_kvm', 'dummy']:
 
         if jpeg_var == 'rtl':
             jpeg_dev = sim.JpegDecoderDev()
-        elif jpeg_var == 'xsim':
-            jpeg_dev = sim.XsimDev(
-                'jpeg_decoder',
-                150,
-                '/local/jkaufman/vivado_jpgd/vivado_energy.sim/sim_1/synth/func/xsim/jpgd_sim_vlog.prj',
-                'jpgd_sim'
-            )
-            # jpeg_dev.gui = True
-            jpeg_dev.saif_sampling_period_ns = 5 * 10**5  # 500 us
         else:
             raise NameError(f'Variant {jpeg_var} is unhandled')
         host.add_pcidev(jpeg_dev)
