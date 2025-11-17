@@ -16,27 +16,27 @@ VCD_TRACE_VFLAGS := $(VFLAGS) $(ADDITIONAL_VFLAGS) --trace-vcd --no-trace-top --
 SAIF_TRACE_CFLAGS := $(CFLAGS) $(ADDITIONAL_CFLAGS) -DTRACE_MODE=2
 SAIF_TRACE_VFLAGS := $(VFLAGS) $(ADDITIONAL_VFLAGS) --trace-saif --no-trace-top
 
-BIN := $(d)vta_sim_1x16_100_no_trace $(d)vta_sim_1x16_174_no_trace $(d)vta_sim_1x16_100_vcd_trace $(d)vta_sim_1x16_174_vcd_trace $(d)vta_sim_1x16_100_saif_trace $(d)vta_sim_1x16_174_saif_trace
+BIN := $(d)vta_synth_sim_1x16_100_no_trace $(d)vta_synth_sim_1x16_174_no_trace $(d)vta_synth_sim_1x16_100_vcd_trace $(d)vta_synth_sim_1x16_174_vcd_trace $(d)vta_synth_sim_1x16_100_saif_trace $(d)vta_synth_sim_1x16_174_saif_trace
 VERILATOR_XILINX := $(d)verilator_xilinx
 
 vta-all: $(BIN)
 
-$(d)vta_sim_1x16_100_no_trace: $(d)vta_sim.sv $(d)vta_synth_1x16_100.v $(d)m_axil_adapter.sv $(d)s_axi_adapter.sv $(d)verilator_adapter.cc $(d)verilator_main.cc $(abspath $(lib_simbricks))
+$(d)vta_synth_sim_1x16_100_no_trace: $(d)vta_sim_synth.sv $(d)vta_synth_1x16_100.v $(d)m_axil_adapter.sv $(d)s_axi_adapter.sv $(d)verilator_adapter.cc $(d)verilator_main.cc $(abspath $(lib_simbricks))
 	verilator --top-module vta_sim -CFLAGS "$(NO_TRACE_CFLAGS)" -y $(VERILATOR_XILINX) $(NO_TRACE_VFLAGS) --binary --build --exe -o $(abspath $@) $^
 
-$(d)vta_sim_1x16_174_no_trace: $(d)vta_sim.sv $(d)vta_synth_1x16_174.v $(d)m_axil_adapter.sv $(d)$(d)s_axi_adapter.sv $(d)verilator_adapter.cc $(d)verilator_main.cc $(abspath $(lib_simbricks))
+$(d)vta_synth_sim_1x16_174_no_trace: $(d)vta_sim_synth.sv $(d)vta_synth_1x16_174.v $(d)m_axil_adapter.sv $(d)$(d)s_axi_adapter.sv $(d)verilator_adapter.cc $(d)verilator_main.cc $(abspath $(lib_simbricks))
 	verilator --top-module vta_sim -CFLAGS "$(NO_TRACE_CFLAGS)" -y $(VERILATOR_XILINX) $(NO_TRACE_VFLAGS) --binary --build --exe -o $(abspath $@) $^
 
-$(d)vta_sim_1x16_100_vcd_trace: $(d)vta_sim.sv $(d)vta_synth_1x16_100.v $(d)m_axil_adapter.sv $(d)s_axi_adapter.sv $(d)verilator_adapter.cc $(d)verilator_main.cc $(abspath $(lib_simbricks))
+$(d)vta_synth_sim_1x16_100_vcd_trace: $(d)vta_sim_synth.sv $(d)vta_synth_1x16_100.v $(d)m_axil_adapter.sv $(d)s_axi_adapter.sv $(d)verilator_adapter.cc $(d)verilator_main.cc $(abspath $(lib_simbricks))
 	verilator --top-module vta_sim -CFLAGS "$(VCD_TRACE_CFLAGS)" -y $(VERILATOR_XILINX) $(VCD_TRACE_VFLAGS) --binary --build --exe -o $(abspath $@) $^
 
-$(d)vta_sim_1x16_174_vcd_trace: $(d)vta_sim.sv $(d)vta_synth_1x16_174.v $(d)m_axil_adapter.sv $(d)s_axi_adapter.sv $(d)verilator_adapter.cc $(d)verilator_main.cc $(abspath $(lib_simbricks))
+$(d)vta_synth_sim_1x16_174_vcd_trace: $(d)vta_sim_synth.sv $(d)vta_synth_1x16_174.v $(d)m_axil_adapter.sv $(d)s_axi_adapter.sv $(d)verilator_adapter.cc $(d)verilator_main.cc $(abspath $(lib_simbricks))
 	verilator --top-module vta_sim -CFLAGS "$(VCD_TRACE_CFLAGS)" -y $(VERILATOR_XILINX) $(VCD_TRACE_VFLAGS) --binary --build --exe -o $(abspath $@) $^
 
-$(d)vta_sim_1x16_100_saif_trace: $(d)vta_sim.sv $(d)vta_synth_1x16_100.v $(d)m_axil_adapter.sv $(d)s_axi_adapter.sv $(d)verilator_adapter.cc $(d)verilator_main.cc $(abspath $(lib_simbricks))
+$(d)vta_synth_sim_1x16_100_saif_trace: $(d)vta_sim_synth.sv $(d)vta_synth_1x16_100.v $(d)m_axil_adapter.sv $(d)s_axi_adapter.sv $(d)verilator_adapter.cc $(d)verilator_main.cc $(abspath $(lib_simbricks))
 	verilator --top-module vta_sim -CFLAGS "$(SAIF_TRACE_CFLAGS)" -y $(VERILATOR_XILINX) $(SAIF_TRACE_VFLAGS) --binary --build --exe -o $(abspath $@) $^
 
-$(d)vta_sim_1x16_174_saif_trace: $(d)vta_sim.sv $(d)vta_synth_1x16_174.v $(d)m_axil_adapter.sv $(d)s_axi_adapter.sv $(d)verilator_adapter.cc $(d)verilator_main.cc $(abspath $(lib_simbricks))
+$(d)vta_synth_sim_1x16_174_saif_trace: $(d)vta_sim_synth.sv $(d)vta_synth_1x16_174.v $(d)m_axil_adapter.sv $(d)s_axi_adapter.sv $(d)verilator_adapter.cc $(d)verilator_main.cc $(abspath $(lib_simbricks))
 	verilator --top-module vta_sim -CFLAGS "$(SAIF_TRACE_CFLAGS)" -y $(VERILATOR_XILINX) $(SAIF_TRACE_VFLAGS) --binary --build --exe -o $(abspath $@) $^
 
 vta-clean:

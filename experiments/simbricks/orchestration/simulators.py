@@ -1301,7 +1301,7 @@ class HierVtaVerilatorDev(PCIDevSim):
 
     def run_cmd(self, env: ExpEnv) -> str:
         # script_path = self._write_bash_script(env)
-        bin = f"{env.repodir}/sims/external/vta/vta_sim_1x16_{self.clock_freq}_{self.trace_mode.to_full_str()}"
+        bin = f"{env.repodir}/sims/external/vta/vta_synth_sim_1x16_{self.clock_freq}_{self.trace_mode.to_full_str()}"
         workdir = f"{env.workdir}/{self.full_name()}"
         trace_file = f"{workdir}/verilator_trace"
         args = [
