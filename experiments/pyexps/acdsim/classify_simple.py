@@ -47,14 +47,14 @@ class TvmClassifyLocal(node.AppConfig):
                 "/local/jkaufman/tvm-acdsim/vta/tutorials/frontend/deploy_classification-infer_single.py",
                 "rb",
             ),
-            "cat.jpg": open("/local/jkaufman/Downloads/cat.jpg", "rb"),
+            "cat.jpg": open("/workspaces/simbricks-acdsim/experiments/acdsim/input_data/cat.jpg", "rb"),
             "computer_keyboard.jpg": open(
-                "/local/jkaufman/Downloads/computer_keyboard.jpg", "rb"
+                "/workspaces/simbricks-acdsim/experiments/acdsim/input_data/computer_keyboard.jpg", "rb"
             ),
             "golden_retriever.jpg": open(
-                "/local/jkaufman/Downloads/golden_retriever.jpg", "rb"
+                "/workspaces/simbricks-acdsim/experiments/acdsim/input_data/golden_retriever.jpg", "rb"
             ),
-            "king_snake.jpg": open("/local/jkaufman/Downloads/king_snake.jpg", "rb"),
+            "king_snake.jpg": open("/workspaces/simbricks-acdsim/input_data/experiments/acdsim/king_snake.jpg", "rb"),
         }
         for library in os.listdir(self.mxnet_dir):
             if not library.endswith(".so"):
