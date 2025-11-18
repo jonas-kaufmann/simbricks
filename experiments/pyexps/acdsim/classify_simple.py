@@ -11,7 +11,7 @@ experiments = []
 
 # Experiment parameters
 host_variants = ["qk", "qt", "gt", "gk", "ga", "simics"]
-rtl_variants = ["verilator", "gate", "rtl"]
+rtl_variants = [sim.VtaVerilatorDev.Variant.SYNTHESIZED, sim.VtaVerilatorDev.Variant.RTL]
 inference_device_opts = [
     node.TvmDeviceType.VTA,
     node.TvmDeviceType.CPU,
@@ -173,11 +173,11 @@ for (
     model_name_opts,
     core_opts,
     rtl_variants,
-    [mode for mode in sim.HierVtaVerilatorDev.TraceOpts],
+    [mode for mode in sim.VtaVerilatorDev.TraceOpts],
     sampling_len_opts,
 ):
     experiment = exp.Experiment(
-        f"{model_name}-{inference_device.value}-{host_var}-{cores}-{vta_clk_freq}-{vta_batch}x{vta_block}-{rtl_variant}-{trace_mode.value}{sampling_len}"
+        f"{model_name}-{inference_device.value}-{host_var}-{cores}-{vta_clk_freq}-{vta_batch}x{vta_block}-{rtl_variant.value}-{trace_mode.value}{sampling_len}"
     )
     pci_vta_id = 2
     sync = False
@@ -245,16 +245,14 @@ for (
     if inference_device == node.TvmDeviceType.VTA:
         # sampling_period = 10 * 10**6
         sampling_period = 1 * 10**6
-        if rtl_variant == "synth":
-            vta = sim.HierVtaVerilatorDev(
-                "vta",
-                vta_clk_freq,
-                trace_mode,
-                sampling_period,
-                sampling_period * sampling_len // 100,
-            )
-        else:
-            raise NameError(f"Unknown rtl_variant {rtl_variant}")
+        vta = sim.VtaVerilatorDev(
+            "vta",
+            rtl_variant,
+            vta_clk_freq,
+            trace_mode,
+            sampling_period,
+            sampling_period * sampling_len // 100,
+        )
         vta.clock_freq = vta_clk_freq
 
         server.add_pcidev(vta)

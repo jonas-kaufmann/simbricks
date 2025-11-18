@@ -1255,7 +1255,7 @@ class JpegDecoderDev(PCIDevSim):
         )
 
 
-class HierVtaVerilatorDev(PCIDevSim):
+class VtaVerilatorDev(PCIDevSim):
 
     class TraceOpts(enum.Enum):
         NONE = "n"
@@ -1263,27 +1263,34 @@ class HierVtaVerilatorDev(PCIDevSim):
         SAIF = "s"
 
         def to_int(self) -> int:
-            if self == HierVtaVerilatorDev.TraceOpts.VCD:
+            if self == VtaVerilatorDev.TraceOpts.VCD:
                 return 1
-            elif self == HierVtaVerilatorDev.TraceOpts.SAIF:
+            elif self == VtaVerilatorDev.TraceOpts.SAIF:
                 return 2
             else:
                 return 0
 
         def to_full_str(self) -> str:
-            if self == HierVtaVerilatorDev.TraceOpts.VCD:
+            if self == VtaVerilatorDev.TraceOpts.VCD:
                 return "vcd_trace"
-            elif self == HierVtaVerilatorDev.TraceOpts.SAIF:
+            elif self == VtaVerilatorDev.TraceOpts.SAIF:
                 return "saif_trace"
             else:
                 return "no_trace"
 
         def is_trace(self) -> bool:
-            return self in {HierVtaVerilatorDev.TraceOpts.VCD, HierVtaVerilatorDev.TraceOpts.SAIF}
+            return self in {
+                VtaVerilatorDev.TraceOpts.VCD, VtaVerilatorDev.TraceOpts.SAIF
+            }
+
+    class Variant(enum.Enum):
+        SYNTHESIZED = "synth"
+        RTL = "rtl"
 
     def __init__(
         self,
         name: str,
+        variant: Variant,
         clk_freq_mhz: int,
         trace_mode: TraceOpts,
         sampling_period_ns: int,
@@ -1291,6 +1298,7 @@ class HierVtaVerilatorDev(PCIDevSim):
     ) -> None:
         super().__init__()
         self.name = name
+        self.variant = variant
         self.clock_freq = clk_freq_mhz
         """Clock frequency in MHz."""
         self.trace_mode = trace_mode
@@ -1300,7 +1308,13 @@ class HierVtaVerilatorDev(PCIDevSim):
         self.sampling_len_ns = sampling_len_ns
 
     def run_cmd(self, env: ExpEnv) -> str:
-        bin = f"{env.repodir}/sims/external/vta/vta_synth_sim_1x16_{self.clock_freq}_{self.trace_mode.to_full_str()}"
+        if self.variant == VtaVerilatorDev.Variant.SYNTHESIZED:
+            bin = f"{env.repodir}/sims/external/vta/vta_synth_sim_1x16_{self.clock_freq}_{self.trace_mode.to_full_str()}"
+        elif self.variant == VtaVerilatorDev.Variant.RTL:
+            bin = f"{env.repodir}/sims/external/vta/vta_rtl_sim_1x16_{self.trace_mode.to_full_str()}"
+        else:
+            raise NameError(f"Unknown variant: {self.variant}")
+
         workdir = f"{env.workdir}/{self.full_name()}"
         os.makedirs(workdir, exist_ok=True)
         trace_file = f"{workdir}/verilator_trace"
