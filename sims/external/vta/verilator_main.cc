@@ -58,7 +58,8 @@ int main(int argc, char **argv, char **) {
   if (argc < 5) {
     std::cerr << "usage: vta_sim <clock frequency in MHz> <path to trace file "
                  "without suffix> <nanoseconds after which to write to next "
-                 "waveform file> <number of nanoseconds per waveform file> [plusargs...]"
+                 "waveform file> <number of nanoseconds per waveform file> "
+                 "[plusargs...]"
               << std::endl;
     return 1;
   }
