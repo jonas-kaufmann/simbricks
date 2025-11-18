@@ -40,17 +40,9 @@ static std::unique_ptr<VerilatedSaifC> tracer;
 
 #if TRACE_ENABLED
 void create_next_trace_file(char *base_filename) {
-  if (tracer) {
-    tracer->close();
-  }
+  tracer->close();
 
-#if TRACE_MODE == TRACE_MODE_VCD
-  tracer = std::unique_ptr<VerilatedVcdC>(new VerilatedVcdC());
-#elif TRACE_MODE == TRACE_MODE_SAIF
-  tracer = std::unique_ptr<VerilatedSaifC>(new VerilatedSaifC());
-#endif
-  topp->trace(tracer.get(), 0);
-
+  // produce trace file name with incrementing suffix
   std::ostringstream trace_file;
   trace_file << base_filename << "_" << trace_idx_next++;
 #if TRACE_MODE == TRACE_MODE_VCD
@@ -94,6 +86,12 @@ int main(int argc, char **argv, char **) {
 // Set up tracing
 #if TRACE_ENABLED
   Verilated::traceEverOn(true);
+#if TRACE_MODE == TRACE_MODE_VCD
+  tracer = std::unique_ptr<VerilatedVcdC>(new VerilatedVcdC());
+#elif TRACE_MODE == TRACE_MODE_SAIF
+  tracer = std::unique_ptr<VerilatedSaifC>(new VerilatedSaifC());
+#endif
+  topp->trace(tracer.get(), 0);
   create_next_trace_file(argv[2]);
 #endif
 
