@@ -5,3 +5,4 @@ vta_synth_1x16_100.v
 vta_synth_1x16_174.v
 
 vta_synth_sim_*
+vta_rtl_sim_*
