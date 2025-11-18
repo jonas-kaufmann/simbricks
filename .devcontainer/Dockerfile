@@ -45,6 +45,7 @@ RUN apt-get update \
     python3-pip \
     rsync \
     scons \
+    tmux \
     unzip \
     wget \
     zlib1g \
