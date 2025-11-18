@@ -13,6 +13,7 @@ RUN apt-get update \
     cmake \
     direnv \
     flex \
+    gdb \
     graphviz \
     help2man \
     kmod \
