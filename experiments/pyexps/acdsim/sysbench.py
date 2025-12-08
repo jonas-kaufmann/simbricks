@@ -49,20 +49,27 @@ class CustomGem5ArmHost(sim.Gem5ArmHost):
 
 
 experiments = []
-thread_opts = [1, 2, 4]
+core_opts = [4, 48]
+thread_opts = [1, 2, 4, 48]
 mem_operations = ["read", "write"]
-cpu_configs = itertools.product(["cpu"], thread_opts, [""], [""])
-mem_configs = itertools.product(["mem"], thread_opts, mem_operations, ["seq", "rnd"])
+cpu_configs = itertools.product(["cpu"], core_opts, thread_opts, [""], [""])
+mem_configs = itertools.product(
+    ["mem"], core_opts, thread_opts, mem_operations, ["seq", "rnd"]
+)
 
-for benchmark, threads, operation, access_mode in itertools.chain(
+for benchmark, cores, threads, operation, access_mode in itertools.chain(
     cpu_configs, mem_configs
 ):
-    e = exp.Experiment(f"sysbench-{benchmark}-{threads}-{operation}-{access_mode}")
+    # skip invalid configurations
+    if threads > cores:
+        continue
+
+    e = exp.Experiment(f"sysbench-{benchmark}-{cores}-{threads}-{operation}-{access_mode}")
     e.checkpoint = True
 
     node_cfg = node.NodeConfig()
-    node_cfg.cores = 4
-    node_cfg.memory = 2 * 1024
+    node_cfg.cores = cores
+    node_cfg.memory = 512 * cores
     if benchmark == "cpu":
         node_cfg.app = SysbenchCPU(threads)
     else:
