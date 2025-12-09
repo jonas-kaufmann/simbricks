@@ -15,6 +15,7 @@
             "extensions": [
                 "eeyore.yapf",
                 "llvm-vs-code-extensions.vscode-clangd",
+                "ms-python.black-formatter",
                 "ms-python.python",
                 "ms-vscode.cpptools-themes",
                 "ms-vscode.cpptools",
