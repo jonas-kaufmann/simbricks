@@ -80,4 +80,18 @@ for benchmark, cores, threads, operation, access_mode in itertools.chain(
     host = CustomGem5ArmHost(node_cfg)
     host.wait = True
     e.add_host(host)
+
+    # add dummy simulator to be able to send a SIGUSR1 to gem5
+    host.sync = False
+    vta = sim.VtaVerilatorDev(
+        "vta",
+        sim.VtaVerilatorDev.Variant.RTL,
+        100,
+        sim.VtaVerilatorDev.TraceOpts.NONE,
+        0,  # don't care
+        0,  # don't care
+    )
+    host.add_pcidev(vta)
+    e.add_pcidev(vta)
+
     experiments.append(e)
