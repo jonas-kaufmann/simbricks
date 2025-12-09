@@ -3,7 +3,8 @@
         "dockerfile": "Dockerfile"
     },
     "runArgs": [
-        "--device=/dev/kvm"
+        "--device=/dev/kvm",
+        "--shm-size=16gb"
     ],
     "mounts": [
         "source=${localWorkspaceFolder}/../tvm-acdsim,target=/workspaces/tvm,type=bind,ro"
