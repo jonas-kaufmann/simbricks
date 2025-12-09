@@ -49,8 +49,8 @@ class CustomGem5ArmHost(sim.Gem5ArmHost):
 
 
 experiments = []
-core_opts = [4, 48]
-thread_opts = [1, 2, 4, 48]
+core_opts = [4, 24, 48]
+thread_opts = [1, 2, 4, 24, 48]
 mem_operations = ["read", "write"]
 cpu_configs = itertools.product(["cpu"], core_opts, thread_opts, [""], [""])
 mem_configs = itertools.product(
@@ -64,7 +64,9 @@ for benchmark, cores, threads, operation, access_mode in itertools.chain(
     if threads > cores:
         continue
 
-    e = exp.Experiment(f"sysbench-{benchmark}-{cores}-{threads}-{operation}-{access_mode}")
+    e = exp.Experiment(
+        f"sysbench-{benchmark}-{cores}-{threads}-{operation}-{access_mode}"
+    )
     e.checkpoint = True
 
     node_cfg = node.NodeConfig()
