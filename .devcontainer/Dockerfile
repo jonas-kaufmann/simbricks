@@ -13,6 +13,7 @@ RUN apt-get update \
     cmake \
     direnv \
     flex \
+    gcc-aarch64-linux-gnu \
     gdb \
     graphviz \
     help2man \
