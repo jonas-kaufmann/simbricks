@@ -1,0 +1,1 @@
+/workspaces/tvm/3rdparty/vta-hw/build/chisel/VTA.DefaultVTAConfig_1x32.sv
