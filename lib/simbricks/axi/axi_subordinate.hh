@@ -168,7 +168,7 @@ class AXISubordinateWrite {
 
   uint8_t &w_ready_;
   const uint8_t &w_valid_;
-  const uint8_t &w_strb_;
+  const uint8_t *const w_strb_;
   const uint8_t &w_last_;
 
   /* response channel */
@@ -196,7 +196,7 @@ class AXISubordinateWrite {
                       const uint8_t &aw_len, const uint8_t &aw_size,
                       const uint8_t &aw_burst, const uint8_t *w_data,
                       uint8_t &w_ready, const uint8_t &w_valid,
-                      const uint8_t &w_strb, const uint8_t &w_last,
+                      const uint8_t *w_strb, const uint8_t &w_last,
                       uint8_t *b_id, const uint8_t &b_ready, uint8_t &b_valid,
                       uint8_t &b_resp)
       : aw_addr_(aw_addr),
