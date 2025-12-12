@@ -1,4 +1,6 @@
 `timescale 1ps / 1ps
+`include "vta_params.svh"
+
 
 module vta_sim(
     input clk,
@@ -66,15 +68,15 @@ module vta_sim(
     );
 
     // S AXI for DMAs
-    wire [5:0] s_axi_awid;
+    wire [7:0] s_axi_awid;
     wire [63:0] s_axi_awaddr;
     wire [7:0] s_axi_awlen;
     wire [2:0] s_axi_awsize;
     wire [1:0] s_axi_awburst;
     wire s_axi_awvalid;
     wire s_axi_awready;
-    wire [63:0] s_axi_wdata;
-    wire [7:0] s_axi_wstrb;
+    wire [`VTA_BITS_DATA-1:0] s_axi_wdata;
+    wire [(`VTA_BITS_DATA/8)-1:0] s_axi_wstrb;
     wire s_axi_wlast;
     wire s_axi_wvalid;
     wire s_axi_wready;
@@ -82,7 +84,7 @@ module vta_sim(
     wire [1:0] s_axi_bresp;
     wire s_axi_bvalid;
     wire s_axi_bready;
-    wire [5:0] s_axi_arid;
+    wire [7:0] s_axi_arid;
     wire [63:0] s_axi_araddr;
     wire [7:0] s_axi_arlen;
     wire [2:0] s_axi_arsize;
@@ -90,7 +92,7 @@ module vta_sim(
     wire s_axi_arvalid;
     wire s_axi_arready;
     wire [7:0] s_axi_rid;
-    wire [63:0] s_axi_rdata;
+    wire [`VTA_BITS_DATA-1:0] s_axi_rdata;
     wire [1:0] s_axi_rresp;
     wire s_axi_rlast;
     wire s_axi_rvalid;
@@ -98,10 +100,10 @@ module vta_sim(
 
     s_axi_adapter s_axi_dma(
         .clk(clk),
-        .s_axi_awid({2'b0, s_axi_awid}),
+        .s_axi_awid(s_axi_awid),
         .s_axi_awaddr(s_axi_awaddr),
         .s_axi_awlen(s_axi_awlen),
-        .s_axi_awsize({5'b0, s_axi_awsize}),
+        .s_axi_awsize(s_axi_awsize),
         .s_axi_awburst(s_axi_awburst),
         .s_axi_awvalid(s_axi_awvalid),
         .s_axi_awready(s_axi_awready),
@@ -114,7 +116,7 @@ module vta_sim(
         .s_axi_bresp(s_axi_bresp),
         .s_axi_bvalid(s_axi_bvalid),
         .s_axi_bready(s_axi_bready),
-        .s_axi_arid({2'b0, s_axi_arid}),
+        .s_axi_arid(s_axi_arid),
         .s_axi_araddr(s_axi_araddr),
         .s_axi_arlen(s_axi_arlen),
         .s_axi_arsize(s_axi_arsize),
@@ -136,14 +138,14 @@ module vta_sim(
         .m_axi_araddr(s_axi_araddr[48:0]),
         .m_axi_arburst(s_axi_arburst),
         .m_axi_arid(s_axi_arid),
-        .m_axi_arlen(s_axi_arlen),
+        .m_axi_arlen(s_axi_arlen[`VTA_BITS_LEN-1:0]),
         .m_axi_arready(s_axi_arready),
         .m_axi_arsize(s_axi_arsize),
         .m_axi_arvalid(s_axi_arvalid),
         .m_axi_awaddr(s_axi_awaddr[48:0]),
         .m_axi_awburst(s_axi_awburst),
         .m_axi_awid(s_axi_awid),
-        .m_axi_awlen(s_axi_awlen),
+        .m_axi_awlen(s_axi_awlen[`VTA_BITS_LEN-1:0]),
         .m_axi_awready(s_axi_awready),
         .m_axi_awsize(s_axi_awsize),
         .m_axi_awvalid(s_axi_awvalid),

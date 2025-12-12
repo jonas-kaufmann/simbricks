@@ -1,4 +1,5 @@
 `timescale 1ns / 1ps
+`include "vta_params.svh"
 
 module s_axi_adapter(
     input clk,
@@ -9,8 +10,8 @@ module s_axi_adapter(
     input [1:0] s_axi_awburst,
     input s_axi_awvalid,
     output reg s_axi_awready,
-    input [63:0] s_axi_wdata,
-    input [7:0] s_axi_wstrb,
+    input [`VTA_BITS_DATA-1:0] s_axi_wdata,
+    input [(`VTA_BITS_DATA/8)-1:0] s_axi_wstrb,
     input s_axi_wlast,
     input s_axi_wvalid,
     output reg s_axi_wready,
@@ -26,7 +27,7 @@ module s_axi_adapter(
     input s_axi_arvalid,
     output reg s_axi_arready,
     output reg [7:0] s_axi_rid,
-    output reg [63:0] s_axi_rdata,
+    output reg [`VTA_BITS_DATA-1:0] s_axi_rdata,
     output reg [1:0] s_axi_rresp,
     output reg s_axi_rlast,
     output reg s_axi_rvalid,
@@ -35,9 +36,14 @@ module s_axi_adapter(
 
     typedef logic [1:0] dpi2_t;
 
-    byte dpi_wdata[8];
-    for (genvar i = 0; i < 8; i = i + 1) begin
+    byte dpi_wdata[`VTA_BYTES_DATA];
+    for (genvar i = 0; i < `VTA_BYTES_DATA; i = i + 1) begin
         assign dpi_wdata[i] = s_axi_wdata[i * 8 +: 8];
+    end
+
+    byte dpi_wstrb[`VTA_BYTES_DATA/8];
+    for (genvar i = 0; i < `VTA_BYTES_DATA/8; i = i + 1) begin
+        assign dpi_wstrb[i] = s_axi_wstrb[i * 8 +: 8];
     end
 
     import "DPI-C" function void s_axi_adapter_step(
@@ -48,8 +54,8 @@ module s_axi_adapter(
         input byte dpi_awburst,
         input bit dpi_awvalid,
         output bit dpi_awready,
-        input byte dpi_wdata[8],
-        input byte dpi_wstrb,
+        input byte dpi_wdata[`VTA_BYTES_DATA],
+        input byte dpi_wstrb[`VTA_BYTES_DATA/8],
         input bit dpi_wlast,
         input bit dpi_wvalid,
         output bit dpi_wready,
@@ -65,7 +71,7 @@ module s_axi_adapter(
         input bit dpi_arvalid,
         output bit dpi_arready,
         output byte dpi_rid,
-        output byte dpi_rdata[8],
+        output byte dpi_rdata[`VTA_BYTES_DATA],
         output byte dpi_rresp,
         output bit dpi_rlast,
         output bit dpi_rvalid,
@@ -80,7 +86,7 @@ module s_axi_adapter(
         bit dpi_bvalid;
         bit dpi_arready;
         byte dpi_rid;
-        byte dpi_rdata[8];
+        byte dpi_rdata[`VTA_BYTES_DATA];
         byte dpi_rresp;
         bit dpi_rlast;
         bit dpi_rvalid;
@@ -94,7 +100,7 @@ module s_axi_adapter(
             s_axi_awvalid,
             dpi_awready,
             dpi_wdata,
-            s_axi_wstrb,
+            dpi_wstrb,
             s_axi_wlast,
             s_axi_wvalid,
             dpi_wready,
@@ -124,7 +130,7 @@ module s_axi_adapter(
         s_axi_bvalid <= dpi_bvalid;
         s_axi_arready <= dpi_arready;
         s_axi_rid <= dpi_rid;
-        for (integer i = 0; i < 8; i = i + 1) begin
+        for (integer i = 0; i < `VTA_BYTES_DATA; i = i + 1) begin
             s_axi_rdata[8 * i +: 8] <= dpi_rdata[i];
         end
         s_axi_rresp <= dpi2_t'(dpi_rresp);

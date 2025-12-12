@@ -1,4 +1,6 @@
 `timescale 1ps / 1ps
+`include "vta_params.svh"
+
 
 module vta_sim(
     input clk,
@@ -73,8 +75,8 @@ module vta_sim(
     wire [1:0] s_axi_awburst;
     wire s_axi_awvalid;
     wire s_axi_awready;
-    wire [63:0] s_axi_wdata;
-    wire [7:0] s_axi_wstrb;
+    wire [`VTA_BITS_DATA-1:0] s_axi_wdata;
+    wire [(`VTA_BITS_DATA/8)-1:0] s_axi_wstrb;
     wire s_axi_wlast;
     wire s_axi_wvalid;
     wire s_axi_wready;
@@ -90,7 +92,7 @@ module vta_sim(
     wire s_axi_arvalid;
     wire s_axi_arready;
     wire [7:0] s_axi_rid;
-    wire [63:0] s_axi_rdata;
+    wire [`VTA_BITS_DATA-1:0] s_axi_rdata;
     wire [1:0] s_axi_rresp;
     wire s_axi_rlast;
     wire s_axi_rvalid;
@@ -157,7 +159,7 @@ module vta_sim(
         .io_mem_aw_bits_addr(s_axi_awaddr),
         .io_mem_aw_bits_id(s_axi_awid),
         .io_mem_aw_bits_user(),
-        .io_mem_aw_bits_len(s_axi_awlen[3:0]),
+        .io_mem_aw_bits_len(s_axi_awlen[`VTA_BITS_LEN-1:0]),
         .io_mem_aw_bits_size(s_axi_awsize),
         .io_mem_aw_bits_burst(s_axi_awburst),
         .io_mem_aw_bits_lock(),
@@ -182,7 +184,7 @@ module vta_sim(
         .io_mem_ar_bits_addr(s_axi_araddr),
         .io_mem_ar_bits_id(s_axi_arid),
         .io_mem_ar_bits_user(),
-        .io_mem_ar_bits_len(s_axi_arlen[3:0]),
+        .io_mem_ar_bits_len(s_axi_arlen[`VTA_BITS_LEN-1:0]),
         .io_mem_ar_bits_size(s_axi_arsize),
         .io_mem_ar_bits_burst(s_axi_arburst),
         .io_mem_ar_bits_lock(),

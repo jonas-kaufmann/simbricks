@@ -42,7 +42,7 @@ uint8_t s_axi_awburst;
 uint8_t s_axi_wdata[BYTES_DATA];
 uint8_t s_axi_wready;
 uint8_t s_axi_wvalid;
-uint8_t s_axi_wstrb;
+uint8_t s_axi_wstrb[BYTES_DATA / 8];
 uint8_t s_axi_wlast;
 uint8_t s_axi_bid;
 uint8_t s_axi_bready;
@@ -464,7 +464,7 @@ extern "C" void s_axi_adapter_step(
     const uint8_t dpi_awid, const uint64_t dpi_awaddr, const uint8_t dpi_awlen,
     const uint8_t dpi_awsize, const uint8_t dpi_awburst,
     const uint8_t dpi_awvalid, uint8_t *const dpi_awready,
-    const uint8_t *dpi_wdata, const uint16_t dpi_wstrb, const uint8_t dpi_wlast,
+    const uint8_t *dpi_wdata, const uint8_t *dpi_wstrb, const uint8_t dpi_wlast,
     const uint8_t dpi_wvalid, uint8_t *const dpi_wready, uint8_t *const dpi_bid,
     uint8_t *const dpi_bresp, uint8_t *const dpi_bvalid,
     const uint8_t dpi_bready, const uint8_t dpi_arid, const uint64_t dpi_araddr,
@@ -483,8 +483,8 @@ extern "C" void s_axi_adapter_step(
   s_axi_awsize = dpi_awsize;
   s_axi_awburst = dpi_awburst;
   s_axi_awvalid = dpi_awvalid;
-  std::memcpy(s_axi_wdata, dpi_wdata, BYTES_DATA);
-  s_axi_wstrb = dpi_wstrb;
+  std::memcpy(s_axi_wdata, dpi_wdata, sizeof(s_axi_wdata));
+  std::memcpy(s_axi_wstrb, dpi_wstrb, sizeof(s_axi_wstrb));
   s_axi_wlast = dpi_wlast;
   s_axi_wvalid = dpi_wvalid;
   s_axi_bready = dpi_bready;

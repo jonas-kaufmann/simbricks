@@ -3,7 +3,7 @@
 #include <simbricks/axi/axi_subordinate.hh>
 #include <simbricks/axi/axil_manager.hh>
 
-#define BYTES_DATA 8
+#define BYTES_DATA 64
 
 // AXI DMA read signals
 extern uint64_t s_axi_araddr;
@@ -30,7 +30,7 @@ extern uint8_t s_axi_awburst;
 extern uint8_t s_axi_wdata[BYTES_DATA];
 extern uint8_t s_axi_wready;
 extern uint8_t s_axi_wvalid;
-extern uint8_t s_axi_wstrb;
+extern uint8_t s_axi_wstrb[BYTES_DATA / 8];
 extern uint8_t s_axi_wlast;
 extern uint8_t s_axi_bid;
 extern uint8_t s_axi_bready;
