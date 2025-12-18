@@ -37,13 +37,3 @@ echo "set(BACKTRACE_ON_SEGFAULT OFF)" >> config.cmake
 echo "set(SUMMARIZE ON)" >> config.cmake
 cmake .. -D CMAKE_BUILD_TYPE=Debug
 make VERBOSE=1 -j`nproc` runtime vta
-
-# add pre-tuned autotvm configurations
-mkdir -p /root/.tvm
-cd /root/.tvm
-git clone --depth 1 https://github.com/tlc-pack/tophub.git tophub
-
-export MXNET_HOME=/root/mxnet
-mkdir -p $MXNET_HOME
-cd $MXNET_HOME
-wget https://github.com/uwsampl/web-data/raw/main/vta/models/synset.txt
