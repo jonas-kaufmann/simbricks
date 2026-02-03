@@ -19,3 +19,6 @@
 [submodule "sims/external/verilator"]
 	path = sims/external/verilator
 	url = https://github.com/jonas-kaufmann/verilator.git
+[submodule "sims/external/jpeg"]
+	path = sims/external/jpeg
+	url = https://github.com/jonas-kaufmann/core_jpeg.git
