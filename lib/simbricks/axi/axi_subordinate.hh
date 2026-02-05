@@ -295,6 +295,12 @@ void AXISubordinateRead<BytesAddr, BytesId, BytesData, MaxInFlight>::step(
     assert(
         res.second &&
         "AXISubordinateRead::step() id_op_map_.emplace() must be successful");
+    if (axi_op.addr % BytesData != 0) {
+      std::cout << "WARN: " << main_time_
+                << " AXI R: new unaligned op addr=" << axi_op.addr
+                << " len=" << axi_op.len << " id=0x" << std::hex << axi_op.id
+                << std::dec << "\n";
+    }
 #ifdef AXI_R_DEBUG
     std::cout << main_time_ << " AXI R: new op addr=" << axi_op.addr
               << " len=" << axi_op.len << " id=0x" << std::hex << axi_op.id
@@ -393,6 +399,12 @@ void AXISubordinateWrite<BytesAddr, BytesId, BytesData, MaxInFlight>::step(
     uint64_t step_size = pow2(aw_size_);
     assert(aw_burst_ == 1 && "we currently only support INCR bursts");
     size_t len = step_size * (aw_len_ + 1);
+    if (addr % BytesData != 0) {
+      std::cout << "WARN: " << main_time_
+                << " AXI W: new unaligned request id=" << axi_id
+                << " addr=" << addr << " len=" << len
+                << " step_size=" << step_size << "\n";
+    }
 #ifdef AXI_W_DEBUG
     std::cout << main_time_ << " AXI W: new request id=" << axi_id
               << " addr=" << addr << " len=" << len
