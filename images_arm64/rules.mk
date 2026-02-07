@@ -76,13 +76,14 @@ convert-images-raw-aarch64:
 
 $(BASE_IMAGE_ARM64): $(packer_arm64) $(QEMU) $(bz_image_arm64) \
     $(m5_bin_arm64) $(kheader_tar_arm64) $(guest_init_arm64) \
-    $(kernel_config_arm64) \
+    $(kernel_config_arm64) $(kmod_udmabuf_arm64) \
     $(addprefix $(d), extended-image.pkr.hcl scripts/install-base.sh \
       scripts/cleanup.sh)
 	rm -rf $(dir $@)
 	mkdir -p $(img_dir_arm64)input-base
 	cp $(m5_bin_arm64) $(kheader_tar_arm64) $(guest_init_arm64) \
 	    $(bz_image_arm64) $(kernel_config_arm64) \
+	    $(kmod_udmabuf_arm64) \
 	    $(img_dir_arm64)input-base/
 	truncate -s 64m $(img_dir_arm64)varstore.img
 	truncate -s 64m $(img_dir_arm64)efi.img

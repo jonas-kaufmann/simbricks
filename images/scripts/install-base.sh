@@ -38,6 +38,12 @@ tar xf /tmp/input/kheaders.tar.bz2
 cp -a lib/modules/* /lib/modules/
 cp -a usr/* /usr/
 
+# install out-of-tree modules
+mkdir -p /lib/modules/5.15.93/extra
+cp /tmp/input/u-dma-buf.ko /lib/modules/5.15.93/extra/u-dma-buf.ko
+chmod 644 /lib/modules/5.15.93/extra/u-dma-buf.ko
+depmod -a 5.15.93
+
 # cleanup
 popd
 rm -rf /tmp/input

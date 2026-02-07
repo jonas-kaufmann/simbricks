@@ -79,12 +79,13 @@ convert-images-raw:
 	$(QEMU_IMG) convert -f qcow2 -O raw $< $@
 
 $(BASE_IMAGE): $(packer) $(QEMU) $(bz_image) $(m5_bin) $(kheader_tar) \
-    $(guest_init) $(kernel_config) \
+    $(guest_init) $(kernel_config) $(kmod_udmabuf) \
     $(addprefix $(d), extended-image.pkr.hcl scripts/install-base.sh \
       scripts/cleanup.sh)
 	rm -rf $(dir $@)
 	mkdir -p $(img_dir)/input-base
 	cp $(m5_bin) $(kheader_tar) $(guest_init) $(bz_image) $(kernel_config) \
+	    $(kmod_udmabuf) \
 	    $(img_dir)/input-base/
 	cd $(img_dir) && ./packer-wrap.sh base base base.pkr.hcl \
 	    $(COMPRESSED_IMAGES)
