@@ -48,12 +48,14 @@ images_arm64/mqnic/modules.order
 images_arm64/mqnic/mqnic.mod*
 images_arm64/vmlinux
 images_arm64/bzImage
+images_arm64/efi.img
 images_arm64/input-*
 images_arm64/output-*
 images_arm64/packer
 images_arm64/packer_cache
 images_arm64/kheaders.tar.bz2
 images_arm64/kernel/linux-*/
+images_arm64/varstore.img
 experiments/build
 experiments/out
 experiments/out_thesis
