@@ -22,6 +22,3 @@
 [submodule "sims/external/jpeg"]
 	path = sims/external/jpeg
 	url = https://github.com/jonas-kaufmann/core_jpeg.git
-[submodule "lib/cma_malloc"]
-	path = lib/cma_malloc
-	url = https://github.com/jonas-kaufmann/cma_malloc.git
