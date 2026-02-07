@@ -1,4 +1,4 @@
-# Copyright 2021 Max Planck Institute for Software Systems, and
+# Copyright 2026 Max Planck Institute for Software Systems, and
 # National University of Singapore
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -22,11 +22,6 @@
 
 include mk/subdir_pre.mk
 
-lib_dir := $(d)
-
-dir_mod_udmabuf := $(d)/udmabuf/
-files_mod_udmabuf := $(dir_mod_udmabuf)Makefile $(dir_mod_udmabuf)u-dma-buf.c
-
-$(eval $(call subdir,simbricks))
+$(eval $(call subdir,udmabuf))
 
 include mk/subdir_post.mk

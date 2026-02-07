@@ -1,4 +1,4 @@
-# Copyright 2021 Max Planck Institute for Software Systems, and
+# Copyright 2026 Max Planck Institute for Software Systems, and
 # National University of Singapore
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -22,11 +22,22 @@
 
 include mk/subdir_pre.mk
 
-lib_dir := $(d)
+builddir_udmabuf_arm64 := $(d)build/
+kmod_udmabuf_arm64 := $(d)u-dma-buf.ko
 
-dir_mod_udmabuf := $(d)/udmabuf/
-files_mod_udmabuf := $(dir_mod_udmabuf)Makefile $(dir_mod_udmabuf)u-dma-buf.c
+$(builddir_udmabuf_arm64): $(files_mod_udmabuf)
+	mkdir -p $@
+	cp $^ $@
+	touch $@
 
-$(eval $(call subdir,simbricks))
+$(kmod_udmabuf_arm64): export KERNEL_SRC_DIR := $(abspath $(kernel_dir_arm64))
+$(kmod_udmabuf_arm64): export ARCH := arm64
+$(kmod_udmabuf_arm64): export CROSS_COMPILE=aarch64-linux-gnu-
+$(kmod_udmabuf_arm64): export PWD=$(abspath $(builddir_udmabuf_arm64))
+$(kmod_udmabuf_arm64): $(builddir_udmabuf_arm64) $(vmlinux_arm64)
+	$(MAKE) -C $(builddir_udmabuf_arm64)
+	cp $(builddir_udmabuf_arm64)/u-dma-buf.ko $@
+
+CLEAN := $(builddir_udmabuf_arm64) $(kmod_udmabuf_arm64)
 
 include mk/subdir_post.mk

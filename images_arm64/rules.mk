@@ -174,6 +174,9 @@ $(kernel_dir_arm64)/.config: $(kernel_pardir_arm64)/config-$(KERNEL_VERSION_ARM6
 	cp $< $@
 
 
+$(eval $(call subdir,kmods))
+
+
 CLEAN :=
 DISTCLEAN := $(kernel_dir_arm64) $(packer_arm64) $(bz_image_arm64) \
     $(vmlinux_arm64) $(kheader_dir_arm64) \

@@ -237,6 +237,10 @@ $(farmem_mod): $(vmlinux)
 	$(MAKE) -C $(kernel_dir) M=$(abspath $(farmem_dir)) modules
 	touch $@
 
+
+$(eval $(call subdir,kmods))
+
+
 CLEAN := $(addprefix $(d), mqnic/mqnic.ko mqnic/*.o mqnic/.*.cmd mqnic/*.mod \
     mqnic/mqnic.mod.c mqnic/Module.symvers mqnic/modules.order \
     farmem/farmem.ko farmem/*.o farmem/.*.cmd farmem/*.mod \

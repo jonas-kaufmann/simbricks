@@ -28,6 +28,8 @@ images/farmem/Module.symvers
 images/farmem/modules.order
 images/farmem/farmem.mod*
 images/kernel/kheaders/
+images/kmods/udmabuf/build/
+images/kmods/udmabuf/u-dma-buf.ko
 images/mqnic/Module.symvers
 images/mqnic/modules.order
 images/mqnic/mqnic.mod*
@@ -43,6 +45,8 @@ images_arm64/farmem/Module.symvers
 images_arm64/farmem/modules.order
 images_arm64/farmem/farmem.mod*
 images_arm64/kernel/kheaders/
+images_arm64/kmods/udmabuf/build/
+images_arm64/kmods/udmabuf/u-dma-buf.ko
 images_arm64/mqnic/Module.symvers
 images_arm64/mqnic/modules.order
 images_arm64/mqnic/mqnic.mod*
