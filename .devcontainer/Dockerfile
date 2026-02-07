@@ -5,6 +5,7 @@ RUN apt-get update \
     TZ=Europe/Berlin \
     apt-get install -y --no-install-recommends \
     autoconf \
+    bc \
     bear \
     bison \
     build-essential \
