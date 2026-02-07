@@ -42,7 +42,7 @@ IMAGES_MIN_ARM64 := $(BASE_IMAGE_ARM64)
 RAW_IMAGES_MIN_ARM64 := $(addsuffix .raw,$(IMAGES_MIN_ARM64))
 
 img_dir_arm64 := $(d)
-packer_arm64 := $(d)packer_arm64
+packer_arm64 := $(d)packer
 
 bz_image_arm64 := $(d)bzImage
 vmlinux_arm64 := $(d)vmlinux
@@ -88,7 +88,7 @@ $(BASE_IMAGE_ARM64): $(packer_arm64) $(QEMU) $(bz_image_arm64) \
 	truncate -s 64m $(img_dir_arm64)varstore.img
 	truncate -s 64m $(img_dir_arm64)efi.img
 	dd if=/usr/share/qemu-efi-aarch64/QEMU_EFI.fd of=$(img_dir_arm64)efi.img conv=notrunc
-	cd $(img_dir_arm64) && ./packer_arm64-wrap.sh base base base.pkr.hcl \
+	cd $(img_dir_arm64) && ./packer-wrap.sh base base base.pkr.hcl \
 	    $(COMPRESSED_IMAGES_ARM64)
 	rm -rf $(img_dir_arm64)input-base
 	touch $@
@@ -99,7 +99,7 @@ $(VTA_DEP_IMAGE_ARM64): $(packer_arm64) $(QEMU) $(BASE_IMAGE_ARM64) \
     $(addprefix $(d), extended-image.pkr.hcl scripts/install-vta_dep.sh \
       scripts/cleanup.sh)
 	rm -rf $(dir $@)
-	cd $(img_dir_arm64) && ./packer_arm64-wrap.sh base vta_dep extended-image.pkr.hcl \
+	cd $(img_dir_arm64) && ./packer-wrap.sh base vta_dep extended-image.pkr.hcl \
 	    $(COMPRESSED_IMAGES_ARM64)
 	touch $@
 
@@ -118,14 +118,14 @@ $(GEMSTONE_IMAGE_ARM64): $(packer_arm64) $(QEMU) $(BASE_IMAGE_ARM64) \
 	rm -rf $(img_dir_arm64)input-gemstone
 	mkdir -p $(img_dir_arm64)input-gemstone
 	ln -s /home/jonask/Repos/cpu_micro_benchmarks $(img_dir_arm64)input-gemstone/cpu_micro_benchmarks
-	cd $(img_dir_arm64) && ./packer_arm64-wrap.sh base gemstone extended-image.pkr.hcl \
+	cd $(img_dir_arm64) && ./packer-wrap.sh base gemstone extended-image.pkr.hcl \
 	    $(COMPRESSED_IMAGES_ARM64)
 	touch $@
 
 
 $(packer_arm64):
 	wget -O $(img_dir_arm64)packer_$(PACKER_VERSION_ARM64)_linux_amd64.zip \
-	    https://releases.hashicorp.com/packer_arm64/$(PACKER_VERSION_ARM64)/packer_$(PACKER_VERSION_ARM64)_linux_amd64.zip
+	    https://releases.hashicorp.com/packer/$(PACKER_VERSION_ARM64)/packer_$(PACKER_VERSION_ARM64)_linux_amd64.zip
 	cd $(img_dir_arm64) && unzip packer_$(PACKER_VERSION_ARM64)_linux_amd64.zip
 	rm -f $(img_dir_arm64)packer_$(PACKER_VERSION_ARM64)_linux_amd64.zip
 
