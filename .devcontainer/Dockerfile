@@ -14,6 +14,7 @@ RUN apt-get update \
     cmake \
     direnv \
     flex \
+    g++-aarch64-linux-gnu \
     gcc-aarch64-linux-gnu \
     gdb \
     graphviz \
