@@ -46,6 +46,7 @@ RUN apt-get update \
     python3 \
     python3-dev \
     python3-pip \
+    python3-pydot \
     qemu-system-aarch64 \
     rsync \
     scons \
