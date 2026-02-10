@@ -20,10 +20,11 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import glob
+import itertools
 import os
 import typing as tp
 
-from PIL import Image
+# from PIL import Image
 
 import simbricks.orchestration.experiments as exp
 import simbricks.orchestration.nodeconfig as node
@@ -31,89 +32,51 @@ import simbricks.orchestration.simulators as sim
 from simbricks.orchestration.nodeconfig import NodeConfig
 
 
-class JpegDecoderWorkload(node.AppConfig):
+class JpegAppConfig(node.AppConfig):
 
-    def __init__(
-        self,
-        pci_dev: str,
-        images: tp.List[str],
-        dma_src_addr: int,
-        dma_dst_addr: int,
-        debug: bool,
-        ms_sleep: tp.Optional[int]
-    ) -> None:
+    def __init__(self,) -> None:
         super().__init__()
-        self.pci_dev = pci_dev
-        self.images = images
-        self.dma_src_addr = dma_src_addr
-        self.dma_dst_addr = dma_dst_addr
-        self.debug = debug
-        self.ms_sleep = ms_sleep
+        self.pci_dev_id = 0
+        self.images: list[str] = []
 
     def prepare_pre_cp(self) -> tp.List[str]:
-        return [
+        cmds = super().prepare_pre_cp()
+        cmds.extend([
             'mount -t proc proc /proc',
             'mount -t sysfs sysfs /sys',
             'echo 1 >/sys/module/vfio/parameters/enable_unsafe_noiommu_mode',
             'echo "dead beef" >/sys/bus/pci/drivers/vfio-pci/new_id',
-            f'dd if=/tmp/guest/{os.path.basename(self.images[0])} bs=4096 '
-            f'of=/dev/mem seek={self.dma_src_addr} oflag=seek_bytes '
-        ]
+        ])
+        return cmds
 
     def run_cmds(self, node: NodeConfig) -> tp.List[str]:
-        # enable vfio access to JPEG decoder
-        cmds = []
+        cmds = super().run_cmds(node)
 
-        first = True
+        img_paths_sim = []
         for img in self.images:
-            with Image.open(img) as loaded_img:
-                width, height = loaded_img.size
+            img_paths_sim.append(f"/tmp/guest/{os.path.basename(img)}")
 
-            cmds.append(
-                f'echo starting decode of image {os.path.basename(img)}'
-            )
+        imgs_arg = " ".join(img_paths_sim)
+        pci_dev = f"0000:00:{(self.pci_dev_id):02x}.0"
+        cmds.append(f"/tmp/guest/jpeg_driver {pci_dev} {imgs_arg}")
 
-            if first:
-                first = False
-            else:
-                # copy image into memory
-                cmds.append(
-                    f'dd if=/tmp/guest/{os.path.basename(img)} bs=4096 '
-                    f'of=/dev/mem seek={self.dma_src_addr} oflag=seek_bytes '
-                )
-
-            cmds.extend([
-
-                # invoke workload driver
-                f'/tmp/guest/jpeg_decoder_workload_driver {self.pci_dev} '
-                f'{self.dma_src_addr} {os.path.getsize(img)} '
-                f'{self.dma_dst_addr}',
-                f'echo finished decode of image {os.path.basename(img)}',
-            ])
-
-            if self.debug:
-                # dump the image as base64 to stdout
-                cmds.extend([
-                    f'echo image dump begin {width} {height}',
-                    (
-                        f'dd if=/dev/mem iflag=skip_bytes,count_bytes bs=4096 '
-                        f'skip={self.dma_dst_addr} count={width * height * 2} '
-                        'status=none | base64'
-                    ),
-                    'echo image dump end'
-                ])
-            elif self.ms_sleep:
-                cmds.append(f'sleep {self.ms_sleep / 1000}')
-
+        # if self.debug:
+        #     # dump the image as base64 to stdout
+        #     cmds.extend([
+        #         f'echo image dump begin {width} {height}',
+        #         (
+        #             f'dd if=/dev/mem iflag=skip_bytes,count_bytes bs=4096 '
+        #             f'skip={self.dma_dst_addr} count={width * height * 2} '
+        #             'status=none | base64'
+        #         ),
+        #         'echo image dump end'
+        #     ])
         return cmds
 
     def config_files(self) -> tp.Dict[str, tp.IO]:
         files = {
-            'jpeg_decoder_workload_driver':
-                open(
-                    '../sims/lpn/jpeg_decoder/jpeg_decoder_workload_driver',
-                    'rb'
-                )
+            'jpeg_driver':
+                open('../sims/external/jpeg/src_sw/jpeg_driver', 'rb')
         }
 
         for img in self.images:
@@ -122,62 +85,124 @@ class JpegDecoderWorkload(node.AppConfig):
         return files
 
 
+class JpegNodeConfig(node.NodeConfig):
+
+    def __init__(self):
+        super().__init__()
+        self.memory = 4 * 1024
+        self.kcmd_append = "cma=256M"
+
+    def prepare_pre_cp(self):
+        cmds = super().prepare_pre_cp()
+        dmabuf_size = 4096 * 4096 * 3 * 2
+        cmds.append(f"modprobe --first-time u-dma-buf udmabuf0={dmabuf_size}")
+        return cmds
+
+
 experiments: tp.List[exp.Experiment] = []
-for host_var in ['gem5_kvm', 'gem5_timing', 'qemu_icount', 'qemu_kvm', 'dummy']:
-    for jpeg_var in ['rtl']:
-        e = exp.Experiment(f'acdsim_jpeg_decoder-{host_var}-{jpeg_var}')
-        node_cfg = node.NodeConfig()
-        node_cfg.kcmd_append = 'memmap=512M!1G'
-        dma_src = 1 * 1024**3
-        dma_dst = dma_src + 10 * 1024**2
-        node_cfg.memory = 2 * 1024
-        # images = glob.glob(
-        #     '../sims/misc/jpeg_decoder/test_img/444_optimized/medium.jpg'
-        # )
-        images = [
-            '../sims/misc/jpeg_decoder/test_img/444_optimized/medium.jpg',
-            '../sims/misc/jpeg_decoder/test_img/444_optimized/1.jpg',
-            '../sims/misc/jpeg_decoder/test_img/444_optimized/20.jpg',
-            # '../sims/misc/jpeg_decoder/test_img/444_optimized/22.jpg',
-            # '../sims/misc/jpeg_decoder/test_img/444_optimized/23.jpg',
-            # '../sims/misc/jpeg_decoder/test_img/444_optimized/24.jpg',
-            # '../sims/misc/jpeg_decoder/test_img/444_optimized/27.jpg',
-            '../sims/misc/jpeg_decoder/test_img/444_optimized/small.jpg'
-        ]
-        node_cfg.app = JpegDecoderWorkload(
-            '0000:00:00.0', images, dma_src, dma_dst, debug=False, ms_sleep=1
-        )
 
-        if host_var == 'gem5_kvm':
-            host = sim.Gem5Host(node_cfg)
-            host.cpu_type = 'X86KvmCPU'
-        elif host_var == 'gem5_timing':
-            e.checkpoint = True
-            host = sim.Gem5Host(node_cfg)
-            host.modify_checkpoint_tick = False
-        elif host_var == 'qemu_icount':
-            node_cfg.app.pci_dev = '0000:00:02.0'
-            host = sim.QemuHost(node_cfg)
-            host.sync = True
-        elif host_var == 'qemu_kvm':
-            node_cfg.app.pci_dev = '0000:00:02.0'
-            host = sim.QemuHost(node_cfg)
-        elif host_var == 'dummy':
-            host = sim.DummyHost(node_cfg)
-            host.sim_seconds = 10
-        else:
-            raise NameError(f'Variant {host_var} is unhandled')
-        host.wait = True
-        e.add_host(host)
+host_variants = ["gt", "gk", "ga"]
+rtl_variants = [sim.JpegDecoderDev.Variant.RTL]
+jpeg_clk_freq_opts = [100]
+core_opts = [1, 4]
+trace_opts = [mode for mode in sim.VtaVerilatorDev.TraceOpts]
+sampling_len_opts = [10, 100]
 
-        if jpeg_var == 'rtl':
-            jpeg_dev = sim.JpegDecoderDev()
-        else:
-            raise NameError(f'Variant {jpeg_var} is unhandled')
-        host.add_pcidev(jpeg_dev)
-        e.add_pcidev(jpeg_dev)
+for (
+    host_var,
+    jpeg_clk_freq,
+    cores,
+    rtl_variant,
+    trace_mode,
+    sampling_len,
+) in itertools.product(
+    host_variants,
+    jpeg_clk_freq_opts,
+    core_opts,
+    rtl_variants,
+    trace_opts,
+    sampling_len_opts,
+):
+    experiment = exp.Experiment(
+        f"jpeg-{host_var}-{cores}-{jpeg_clk_freq}-{rtl_variant.value}-{trace_mode.value}{sampling_len}"
+    )
 
-        host.pci_latency = host.sync_period = jpeg_dev.pci_latency = \
-            jpeg_dev.sync_period = 200
+    pci_jpeg_id = 2
+    sync = False
+    if host_var == "qk":
+        HostClass = sim.QemuHost
+    elif host_var == "qt":
+        HostClass = sim.QemuIcountHost
+        sync = True
+    elif host_var == "gt":
+        pci_jpeg_id = 0
+        HostClass = sim.Gem5Host
+        experiment.checkpoint = True
+        sync = True
+    elif host_var == "ga":
+        pci_jpeg_id = 3
 
-        experiments.append(e)
+        class CustomGem5ArmHost(sim.Gem5ArmHost):
+
+            def __init__(self, node_config: sim.NodeConfig) -> None:
+                super().__init__(node_config)
+                self.cpu_freq = "1200MHz"
+                self.cpu_type = "hpi_a53"
+                self.variant = "opt"
+                self.mem_type = "LPDDR4_1066_1x32"
+                # self.extra_main_args.append("--debug-flags=SimBricksPci")
+
+        HostClass = CustomGem5ArmHost
+        experiment.checkpoint = True
+        sync = True
+    elif host_var == "gk":
+        pci_jpeg_id = 0
+        HostClass = sim.Gem5KvmHost
+        sync = False
+    elif host_var == "simics":
+        HostClass = sim.SimicsHost
+        pci_jpeg_id = 0x0B
+
+    # Instantiate server
+    server_cfg = JpegNodeConfig()
+    # server_cfg.nockp = True
+    server_cfg.cores = cores
+    if host_var == "simics":
+        server_cfg.disk_image += "-simics"
+        server_cfg.kcmd_append = ""
+    server_cfg.app = JpegAppConfig()
+    if host_var in ["gt", "ga"]:
+        server_cfg.app.env_simulator = "gem5"
+    server_cfg.app.pci_dev_id = pci_jpeg_id
+    server_cfg.app.images = glob.glob(
+        '../sims/misc/jpeg_decoder/test_img/444_optimized/9.jpg'
+    )
+    # server_cfg.app.trace = trace_mode.is_trace()
+    server = HostClass(server_cfg)
+    # Whether to synchronize JPEG accelerator and server
+    server.sync = sync
+    # Wait until server exits
+    server.wait = True
+
+    # Instantiate and connect JPEG PCIe-based accelerator to server
+    sampling_period = 1 * 10**6
+    vta = sim.JpegDecoderDev(
+        "jpeg",
+        rtl_variant,
+        jpeg_clk_freq,
+        trace_mode,
+        sampling_period,
+        sampling_period * sampling_len // 100,
+    )
+    server.add_pcidev(vta)
+    if host_var == "simics":
+        server.debug_messages = False
+        server.start_ts = vta.start_tick = int(63 * 10**12)
+
+    server.pci_latency = server.sync_period = vta.pci_latency = vta.sync_period = 65
+
+    # Add both simulators to experiment
+    experiment.add_host(server)
+    experiment.add_pcidev(vta)
+
+    experiments.append(experiment)
