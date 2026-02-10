@@ -34,6 +34,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <utility>
 #include <variant>
 
@@ -102,8 +103,9 @@ class AXILManagerReadPort {
 
   void set_op(AXILOperationR &axi_op) {
     if (cur_op_ != nullptr) {
-      throw "AXILManagerReadPort::set_op() cur_op_ must be completed i.e. NULL "
-      "before setting new one";
+      throw std::runtime_error(
+          "AXILManagerReadPort::set_op() cur_op_ must be completed i.e. NULL "
+          "before setting new one");
     }
     cur_op_ = &axi_op;
   }
@@ -164,8 +166,9 @@ class AXILManagerWritePort {
 
   void set_op(AXILOperationW &axi_op) {
     if (cur_op_ != nullptr) {
-      throw "AXILManagerReadPort::set_op() cur_op_ must be completed i.e. NULL "
-      "before setting new one";
+      throw std::runtime_error(
+          "AXILManagerReadPort::set_op() cur_op_ must be completed i.e. NULL "
+          "before setting new one");
     }
     cur_op_ = &axi_op;
   }
@@ -385,7 +388,8 @@ template <size_t BytesAddr, size_t BytesData>
 void AXILManager<BytesAddr, BytesData>::issue_read(uint64_t req_id,
                                                    uint64_t addr) {
   if (addr % BytesData != 0) {
-    throw "AXILManager::issue_read() addr has to be aligned to BytesData";
+    throw std::runtime_error(
+        "AXILManager::issue_read() addr has to be aligned to BytesData");
   }
   bool was_empty = pending_.empty();
   pending_.emplace_back(AXILOperationR{addr, req_id});
@@ -400,7 +404,8 @@ void AXILManager<BytesAddr, BytesData>::issue_write(uint64_t req_id,
                                                     uint64_t data,
                                                     bool posted) {
   if (addr % BytesData != 0) {
-    throw "AXILManager::issue_write() addr has to be aligned to BytesData";
+    throw std::runtime_error(
+        "AXILManager::issue_write() addr has to be aligned to BytesData");
   }
   bool was_empty = pending_.empty();
   pending_.emplace_back(AXILOperationW{addr, req_id, data, posted});
