@@ -175,7 +175,7 @@ for (
         server_cfg.app.env_simulator = "gem5"
     server_cfg.app.pci_dev_id = pci_jpeg_id
     server_cfg.app.images = glob.glob(
-        '../sims/misc/jpeg_decoder/test_img/444_optimized/9.jpg'
+        '../sims/misc/jpeg_decoder/test_img/444_optimized/8x8.jpg'
     )
     # server_cfg.app.trace = trace_mode.is_trace()
     server = HostClass(server_cfg)
