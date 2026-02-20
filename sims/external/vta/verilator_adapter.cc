@@ -9,10 +9,11 @@
 
 #define NUM_ADAPTERS 2
 
-#include "verilator_adapter.hh"
-
 #include <signal.h>
+
 #include <simbricks/base/cxxatomicfix.h>
+
+#include "verilator_adapter.hh"
 extern "C" {
 #include <simbricks/pcie/if.h>
 }
@@ -71,7 +72,7 @@ uint8_t m_axil_bresp;
 HierVtaAXISubordinateRead dma_read{};
 HierVtaAXISubordinateWrite dma_write{};
 HierVtaAXILManager reg_read_write{};
-uint64_t clock_period = 1'000'000 / 150ULL; // 150 MHz
+uint64_t clock_period = 1'000'000 / 150ULL;  // 150 MHz
 uint64_t simbricks_time = 0;
 uint64_t hardware_time = 0;
 volatile bool exiting = 0;
@@ -244,18 +245,18 @@ bool h2d_read(volatile struct SimbricksProtoPcieH2DRead &read) {
 #endif
 
   switch (read.bar) {
-  case 0: {
-    if (synchronized && pseudo_synchronized) {
-      throw "h2d_read() cannot handle incoming read request while doing "
+    case 0: {
+      if (synchronized && pseudo_synchronized) {
+        throw "h2d_read() cannot handle incoming read request while doing "
             "pseudo-synchronization";
+      }
+      reg_read_write.issue_read(read.req_id, read.offset);
+      break;
     }
-    reg_read_write.issue_read(read.req_id, read.offset);
-    break;
-  }
-  default: {
-    std::cerr << "error: read from unexpected bar " << read.bar << "\n";
-    return false;
-  }
+    default: {
+      std::cerr << "error: read from unexpected bar " << read.bar << "\n";
+      return false;
+    }
   }
   return true;
 }
@@ -268,44 +269,44 @@ bool h2d_write(volatile struct SimbricksProtoPcieH2DWrite &write, bool posted) {
 #endif
 
   switch (write.bar) {
-  case 0: {
-    uint32_t data;
-    if (write.len != 4) {
-      throw "h2d_write() JPEG decoder register write len must be exactly 4 "
+    case 0: {
+      uint32_t data;
+      if (write.len != 4) {
+        throw "h2d_write() JPEG decoder register write len must be exactly 4 "
             "bytes";
-    }
-    if (synchronized && pseudo_synchronized) {
-      throw "h2d_write() cannot handle incoming request while doing "
+      }
+      if (synchronized && pseudo_synchronized) {
+        throw "h2d_write() cannot handle incoming request while doing "
             "pseudo-synchronization";
+      }
+      std::memcpy(&data, const_cast<uint8_t *>(write.data), write.len);
+      reg_read_write.issue_write(write.req_id, write.offset, data, posted);
+      break;
     }
-    std::memcpy(&data, const_cast<uint8_t *>(write.data), write.len);
-    reg_read_write.issue_write(write.req_id, write.offset, data, posted);
-    break;
-  }
-  case 1: {
-    if (write.offset != 0 || write.len != 4) {
-      throw "h2d_write() write to simulation control BAR only supports offset "
+    case 1: {
+      if (write.offset != 0 || write.len != 4) {
+        throw "h2d_write() write to simulation control BAR only supports offset "
             "0 and length 4";
+      }
+      uint32_t data;
+      std::memcpy(&data, const_cast<uint8_t *>(write.data), sizeof(data));
+      if (pseudo_synchronized && data == 1) {
+        std::cout << "Disabling pseudo-synchronization at simbricks_time="
+                  << simbricks_time << " hardware_time=" << hardware_time
+                  << std::endl;
+        pseudo_synchronized = false;
+      } else if (!pseudo_synchronized && data == 0) {
+        std::cout << "Enabling pseudo-synchronization at simbricks_time="
+                  << simbricks_time << " hardware_time=" << hardware_time
+                  << std::endl;
+        pseudo_synchronized = true;
+      }
+      break;
     }
-    uint32_t data;
-    std::memcpy(&data, const_cast<uint8_t *>(write.data), sizeof(data));
-    if (pseudo_synchronized && data == 1) {
-      std::cout << "Disabling pseudo-synchronization at simbricks_time="
-                << simbricks_time << " hardware_time=" << hardware_time
-                << std::endl;
-      pseudo_synchronized = false;
-    } else if (!pseudo_synchronized && data == 0) {
-      std::cout << "Enabling pseudo-synchronization at simbricks_time="
-                << simbricks_time << " hardware_time=" << hardware_time
-                << std::endl;
-      pseudo_synchronized = true;
+    default: {
+      std::cerr << "error: write to unexpected bar " << write.bar << "\n";
+      return false;
     }
-    break;
-  }
-  default: {
-    std::cerr << "error: write to unexpected bar " << write.bar << "\n";
-    return false;
-  }
   }
 
   if (!posted) {
@@ -348,47 +349,49 @@ bool poll_h2d() {
   uint8_t type = SimbricksPcieIfH2DInType(&pcieif, msg);
 
   switch (type) {
-  case SIMBRICKS_PROTO_PCIE_H2D_MSG_READ:
-    if (!h2d_read(msg->read)) {
-      return false;
-    }
-    break;
-  case SIMBRICKS_PROTO_PCIE_H2D_MSG_WRITE:
-    if (!h2d_write(msg->write, false)) {
-      return false;
-    }
-    break;
-  case SIMBRICKS_PROTO_PCIE_H2D_MSG_WRITE_POSTED:
-    if (!h2d_write(msg->write, true)) {
-      return false;
-    }
-    break;
-  case SIMBRICKS_PROTO_PCIE_H2D_MSG_READCOMP:
-    if (!h2d_readcomp(msg->readcomp)) {
-      return false;
-    }
-    break;
-  case SIMBRICKS_PROTO_PCIE_H2D_MSG_WRITECOMP:
-    if (!h2d_writecomp(msg->writecomp)) {
-      return false;
-    }
-    break;
-  case SIMBRICKS_PROTO_PCIE_H2D_MSG_DEVCTRL:
-  case SIMBRICKS_PROTO_MSG_TYPE_SYNC:
-    break; /* noop */
-  case SIMBRICKS_PROTO_MSG_TYPE_TERMINATE:
-    std::cerr << "poll_h2d: peer terminated\n";
-    exiting = true;
-    break;
-  default:
-    std::cerr << "warn: poll_h2d: unsupported type=" << type << "\n";
+    case SIMBRICKS_PROTO_PCIE_H2D_MSG_READ:
+      if (!h2d_read(msg->read)) {
+        return false;
+      }
+      break;
+    case SIMBRICKS_PROTO_PCIE_H2D_MSG_WRITE:
+      if (!h2d_write(msg->write, false)) {
+        return false;
+      }
+      break;
+    case SIMBRICKS_PROTO_PCIE_H2D_MSG_WRITE_POSTED:
+      if (!h2d_write(msg->write, true)) {
+        return false;
+      }
+      break;
+    case SIMBRICKS_PROTO_PCIE_H2D_MSG_READCOMP:
+      if (!h2d_readcomp(msg->readcomp)) {
+        return false;
+      }
+      break;
+    case SIMBRICKS_PROTO_PCIE_H2D_MSG_WRITECOMP:
+      if (!h2d_writecomp(msg->writecomp)) {
+        return false;
+      }
+      break;
+    case SIMBRICKS_PROTO_PCIE_H2D_MSG_DEVCTRL:
+    case SIMBRICKS_PROTO_MSG_TYPE_SYNC:
+      break; /* noop */
+    case SIMBRICKS_PROTO_MSG_TYPE_TERMINATE:
+      std::cerr << "poll_h2d: peer terminated\n";
+      exiting = true;
+      break;
+    default:
+      std::cerr << "warn: poll_h2d: unsupported type=" << type << "\n";
   }
 
   SimbricksPcieIfH2DInDone(&pcieif, msg);
   return true;
 }
 
-extern "C" void sigint_handler(int dummy) { exiting = 1; }
+extern "C" void sigint_handler(int dummy) {
+  exiting = 1;
+}
 
 extern "C" void sigusr1_handler(int dummy) {
   std::cerr << "simbricks_time=" << simbricks_time
@@ -458,7 +461,9 @@ void simbricks_tick() {
   }
 }
 
-extern "C" unsigned char simbricks_is_exit() { return exiting ? 1 : 0; }
+extern "C" unsigned char simbricks_is_exit() {
+  return exiting ? 1 : 0;
+}
 
 extern "C" void s_axi_adapter_step(
     const uint8_t dpi_awid, const uint64_t dpi_awaddr, const uint8_t dpi_awlen,
@@ -517,17 +522,16 @@ extern "C" void s_axi_adapter_step(
   simbricks_tick();
 }
 
-extern "C" void
-m_axil_adapter_step(uint32_t *const dpi_awaddr, uint8_t *const dpi_awprot,
-                    uint8_t *const dpi_awvalid, const uint8_t dpi_awready,
-                    uint32_t *const dpi_wdata, uint8_t *const dpi_wstrb,
-                    uint8_t *const dpi_wvalid, const uint8_t dpi_wready,
-                    const uint8_t dpi_bresp, const uint8_t dpi_bvalid,
-                    uint8_t *const dpi_bready, uint32_t *const dpi_araddr,
-                    uint8_t *const dpi_arprot, uint8_t *const dpi_arvalid,
-                    const uint8_t dpi_arready, const int dpi_rdata,
-                    const uint8_t dpi_rresp, const uint8_t dpi_rvalid,
-                    uint8_t *const dpi_rready) {
+extern "C" void m_axil_adapter_step(
+    uint32_t *const dpi_awaddr, uint8_t *const dpi_awprot,
+    uint8_t *const dpi_awvalid, const uint8_t dpi_awready,
+    uint32_t *const dpi_wdata, uint8_t *const dpi_wstrb,
+    uint8_t *const dpi_wvalid, const uint8_t dpi_wready,
+    const uint8_t dpi_bresp, const uint8_t dpi_bvalid,
+    uint8_t *const dpi_bready, uint32_t *const dpi_araddr,
+    uint8_t *const dpi_arprot, uint8_t *const dpi_arvalid,
+    const uint8_t dpi_arready, const int dpi_rdata, const uint8_t dpi_rresp,
+    const uint8_t dpi_rvalid, uint8_t *const dpi_rready) {
   simbricks_sync_poll();
 
   // copy over input signals
