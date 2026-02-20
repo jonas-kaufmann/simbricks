@@ -1305,6 +1305,20 @@ class VerilatorPCIDevSim(PCIDevSim):
         return args
 
 
+class JpegDecoderDev(VerilatorPCIDevSim):
+
+    def run_cmd(self, env: ExpEnv) -> str:
+        if self.variant == VerilatorPCIDevSim.Variant.RTL:
+            bin = f"{env.repodir}/sims/external/jpeg/src_simbricks/jpeg_rtl_sim_{self.trace_mode.to_full_str()}"
+        else:
+            raise NameError(f"Unsupported variant: {self.variant}")
+
+        args = self.get_base_args(env)
+        args_quoted = [shlex.quote(arg) for arg in args]
+        args_all = " ".join(args_quoted)
+        return f"{bin} {args_all}"
+
+
 class VtaVerilatorDev(VerilatorPCIDevSim):
 
     def run_cmd(self, env: ExpEnv) -> str:
