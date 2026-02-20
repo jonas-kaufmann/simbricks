@@ -54,7 +54,7 @@ class ExpEnv(object):
         )
         self.gem5_kernel_path = f'{self.repodir}/images/vmlinux'
         self.gem5_arm_kernel_path = f'{self.repodir}/images_arm64/vmlinux'
-        self.gem5_arm_bootlader_path = f'{self.repodir}/sims/external/gem5/system/arm/bootloader/arm64/boot.arm64'
+        self.gem5_arm_bootlader_path = f'{self.repodir}/sims/external/gem5/system/arm/bootloader/arm64/boot_v2.arm64'
         simics_project_base = f'{self.repodir}/sims/external/simics/project'
         self.simics_path = f'{simics_project_base}/simics'
         self.simics_gui_path = f'{simics_project_base}/simics-gui'
