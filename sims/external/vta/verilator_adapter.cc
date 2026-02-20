@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <cstring>
 #include <exception>
+#include <stdexcept>
 // #define AXI_R_DEBUG
 // #define AXI_W_DEBUG
 // #define AXIL_R_DEBUG
@@ -97,7 +98,8 @@ void HierVtaAXISubordinateRead::do_read(const simbricks::AXIOperation &axi_op) {
 
   volatile union SimbricksProtoPcieD2H *msg = d2h_alloc(simbricks_time);
   if (!msg) {
-    throw "HierVtaAXISubordinateRead::doRead() dma read alloc failed";
+    throw std::runtime_error(
+        "HierVtaAXISubordinateRead::doRead() dma read alloc failed");
   }
 
   unsigned int max_size = SimbricksPcieIfH2DOutMsgLen(&pcieif) -
@@ -125,7 +127,8 @@ void HierVtaAXISubordinateWrite::do_write(
 
   volatile union SimbricksProtoPcieD2H *msg = d2h_alloc(simbricks_time);
   if (!msg) {
-    throw "JpegDecoderMemWriter::doWrite() dma read alloc failed";
+    throw std::runtime_error(
+        "JpegDecoderMemWriter::doWrite() dma read alloc failed");
   }
 
   volatile struct SimbricksProtoPcieD2HWrite *write = &msg->write;
@@ -151,7 +154,8 @@ void HierVtaAXILManager::read_done(simbricks::AXILOperationR &axi_op) {
 
   volatile union SimbricksProtoPcieD2H *msg = d2h_alloc(simbricks_time);
   if (!msg) {
-    throw "HierVtaAXILManager::read_done() completion alloc failed";
+    throw std::runtime_error(
+        "HierVtaAXILManager::read_done() completion alloc failed");
   }
 
   volatile struct SimbricksProtoPcieD2HReadcomp *readcomp = &msg->readcomp;
@@ -173,7 +177,8 @@ void HierVtaAXILManager::write_done(simbricks::AXILOperationW &axi_op) {
 
   volatile union SimbricksProtoPcieD2H *msg = d2h_alloc(simbricks_time);
   if (!msg) {
-    throw "HierVtaAXILManager::write_done completion alloc failed";
+    throw std::runtime_error(
+        "HierVtaAXILManager::write_done completion alloc failed");
   }
 
   volatile struct SimbricksProtoPcieD2HWritecomp *writecomp = &msg->writecomp;
@@ -247,8 +252,9 @@ bool h2d_read(volatile struct SimbricksProtoPcieH2DRead &read) {
   switch (read.bar) {
     case 0: {
       if (synchronized && pseudo_synchronized) {
-        throw "h2d_read() cannot handle incoming read request while doing "
-            "pseudo-synchronization";
+        throw std::runtime_error(
+            "h2d_read() cannot handle incoming read request while doing "
+            "pseudo-synchronization");
       }
       reg_read_write.issue_read(read.req_id, read.offset);
       break;
@@ -272,12 +278,14 @@ bool h2d_write(volatile struct SimbricksProtoPcieH2DWrite &write, bool posted) {
     case 0: {
       uint32_t data;
       if (write.len != 4) {
-        throw "h2d_write() JPEG decoder register write len must be exactly 4 "
-            "bytes";
+        throw std::runtime_error(
+            "h2d_write() JPEG decoder register write len must be exactly 4 "
+            "bytes");
       }
       if (synchronized && pseudo_synchronized) {
-        throw "h2d_write() cannot handle incoming request while doing "
-            "pseudo-synchronization";
+        throw std::runtime_error(
+            "h2d_write() cannot handle incoming request while doing "
+            "pseudo-synchronization");
       }
       std::memcpy(&data, const_cast<uint8_t *>(write.data), write.len);
       reg_read_write.issue_write(write.req_id, write.offset, data, posted);
@@ -285,8 +293,9 @@ bool h2d_write(volatile struct SimbricksProtoPcieH2DWrite &write, bool posted) {
     }
     case 1: {
       if (write.offset != 0 || write.len != 4) {
-        throw "h2d_write() write to simulation control BAR only supports offset "
-            "0 and length 4";
+        throw std::runtime_error(
+            "h2d_write() write to simulation control BAR only supports offset "
+            "0 and length 4");
       }
       uint32_t data;
       std::memcpy(&data, const_cast<uint8_t *>(write.data), sizeof(data));
@@ -322,8 +331,9 @@ bool h2d_write(volatile struct SimbricksProtoPcieH2DWrite &write, bool posted) {
 
 bool h2d_readcomp(volatile struct SimbricksProtoPcieH2DReadcomp &readcomp) {
   if (synchronized && pseudo_synchronized) {
-    throw "h2d_readcomp() cannot handle incoming response while doing "
-          "pseudo-synchronization";
+    throw std::runtime_error(
+        "h2d_readcomp() cannot handle incoming response while doing "
+        "pseudo-synchronization");
   }
   dma_read.read_done(readcomp.req_id, const_cast<uint8_t *>(readcomp.data));
   return true;
@@ -331,8 +341,9 @@ bool h2d_readcomp(volatile struct SimbricksProtoPcieH2DReadcomp &readcomp) {
 
 bool h2d_writecomp(volatile struct SimbricksProtoPcieH2DWritecomp &writecomp) {
   if (synchronized && pseudo_synchronized) {
-    throw "h2d_writecomp() cannot handle incoming response while doing "
-          "pseudo-synchronization";
+    throw std::runtime_error(
+        "h2d_writecomp() cannot handle incoming response while doing "
+        "pseudo-synchronization");
   }
   dma_write.write_done(writecomp.req_id);
   return true;
@@ -415,7 +426,7 @@ extern "C" void simbricks_init(const char *pci_socket, const char *shm_path,
 
   if_params.sock_path = pci_socket;
   if (!PciIfInit(shm_path, if_params)) {
-    throw "PciIfInit failed";
+    throw std::runtime_error("PciIfInit failed");
   }
 
   synchronized = SimbricksBaseIfSyncEnabled(&pcieif.base);
