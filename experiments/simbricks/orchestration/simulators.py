@@ -1235,27 +1235,7 @@ class FEMUDev(PCIDevSim):
         return cmd
 
 
-class JpegDecoderDev(PCIDevSim):
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.start_tick = 0
-        self.name = 'jpeg_decoder'
-        self.variant = 'jpeg_decoder_verilator'
-
-    def resreq_mem(self) -> int:
-        return 512  # this is a guess
-
-    def run_cmd(self, env: ExpEnv) -> str:
-        return (
-            f'{env.repodir}/sims/misc/jpeg_decoder/{self.variant} '
-            f'{env.dev_pci_path(self)} {env.dev_shm_path(self)} '
-            f'{self.start_tick} {self.sync_period} {self.pci_latency} '
-            f'{env.outdir}/{self.name}_dump '
-        )
-
-
-class VtaVerilatorDev(PCIDevSim):
+class VerilatorPCIDevSim(PCIDevSim):
 
     class TraceOpts(enum.Enum):
         NONE = "n"
@@ -1294,8 +1274,8 @@ class VtaVerilatorDev(PCIDevSim):
         clk_freq_mhz: int,
         trace_mode: TraceOpts,
         sampling_period_ns: int,
-        sampling_len_ns: int,
-    ) -> None:
+        sampling_len_ns: int
+    ):
         super().__init__()
         self.name = name
         self.variant = variant
@@ -1307,14 +1287,7 @@ class VtaVerilatorDev(PCIDevSim):
         """Tracing sampling period in nanoseconds, after which a tracing is continued in the next file."""
         self.sampling_len_ns = sampling_len_ns
 
-    def run_cmd(self, env: ExpEnv) -> str:
-        if self.variant == VtaVerilatorDev.Variant.SYNTHESIZED:
-            bin = f"{env.repodir}/sims/external/vta/vta_synth_sim_1x16_{self.clock_freq}_{self.trace_mode.to_full_str()}"
-        elif self.variant == VtaVerilatorDev.Variant.RTL:
-            bin = f"{env.repodir}/sims/external/vta/vta_rtl_sim_1x16_{self.trace_mode.to_full_str()}"
-        else:
-            raise NameError(f"Unknown variant: {self.variant}")
-
+    def get_base_args(self, env: ExpEnv) -> list[str]:
         workdir = f"{env.workdir}/{self.full_name()}"
         os.makedirs(workdir, exist_ok=True)
         trace_file = f"{workdir}/verilator_trace"
@@ -1329,6 +1302,20 @@ class VtaVerilatorDev(PCIDevSim):
             f"+PCI_LATENCY={self.pci_latency}",
             f"+CLK_FREQ_MHZ={self.clock_freq}"
         ]
+        return args
+
+
+class VtaVerilatorDev(VerilatorPCIDevSim):
+
+    def run_cmd(self, env: ExpEnv) -> str:
+        if self.variant == VerilatorPCIDevSim.Variant.SYNTHESIZED:
+            bin = f"{env.repodir}/sims/external/jpeg/src_simbricks/_{self.clock_freq}_{self.trace_mode.to_full_str()}"
+        elif self.variant == VerilatorPCIDevSim.Variant.RTL:
+            bin = f"{env.repodir}/sims/external/vta/vta_rtl_sim_1x16_{self.trace_mode.to_full_str()}"
+        else:
+            raise NameError(f"Unknown variant: {self.variant}")
+
+        args = self.get_base_args(env)
         args_quoted = [shlex.quote(arg) for arg in args]
         args_all = " ".join(args_quoted)
         return f"{bin} {args_all}"
