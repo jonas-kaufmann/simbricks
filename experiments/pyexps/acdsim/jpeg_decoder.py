@@ -52,6 +52,9 @@ class JpegAppConfig(node.AppConfig):
     def run_cmds(self, node: NodeConfig) -> tp.List[str]:
         cmds = super().run_cmds(node)
 
+        if not self.images:
+            raise RuntimeError("No images to be decoded")
+
         img_paths_sim = []
         for img in self.images:
             img_paths_sim.append(f"/tmp/guest/{os.path.basename(img)}")
