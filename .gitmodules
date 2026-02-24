@@ -24,4 +24,4 @@
 	url = https://github.com/jonas-kaufmann/core_jpeg.git
 [submodule "lib/udmabuf"]
 	path = lib/udmabuf
-	url = https://github.com/ikwzm/udmabuf.git
+	url = https://github.com/jonas-kaufmann/udmabuf.git
