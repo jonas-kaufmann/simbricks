@@ -24,6 +24,7 @@ RUN apt-get update \
     libboost-fiber-dev \
     libboost-iostreams-dev \
     libboost-program-options-dev \
+    libclang-rt-20-dev \
     libelf-dev \
     libfl-dev \
     libfl2 \
@@ -36,6 +37,7 @@ RUN apt-get update \
     libprotobuf-dev \
     libssl-dev \
     libtool \
+    lld-20 \
     locales \
     mold \
     ninja-build \
