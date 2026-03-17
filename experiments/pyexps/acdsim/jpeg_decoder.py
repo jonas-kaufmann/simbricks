@@ -58,7 +58,7 @@ class JpegAppConfig(node.AppConfig):
 
         imgs_arg = " ".join(img_paths_sim)
         pci_dev = f"0000:00:{(self.pci_dev_id):02x}.0"
-        cmds.append(f"/tmp/guest/jpeg_driver {pci_dev} {imgs_arg}")
+        cmds.append(f"/tmp/guest/jpeg_driver vfio {pci_dev} {imgs_arg}")
         return cmds
 
     def config_files(self) -> tp.Dict[str, tp.IO]:
