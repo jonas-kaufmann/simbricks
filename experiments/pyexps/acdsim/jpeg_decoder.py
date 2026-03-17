@@ -19,12 +19,9 @@
 # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-import glob
 import itertools
 import os
 import typing as tp
-
-# from PIL import Image
 
 import simbricks.orchestration.experiments as exp
 import simbricks.orchestration.nodeconfig as node
@@ -62,18 +59,6 @@ class JpegAppConfig(node.AppConfig):
         imgs_arg = " ".join(img_paths_sim)
         pci_dev = f"0000:00:{(self.pci_dev_id):02x}.0"
         cmds.append(f"/tmp/guest/jpeg_driver {pci_dev} {imgs_arg}")
-
-        # if self.debug:
-        #     # dump the image as base64 to stdout
-        #     cmds.extend([
-        #         f'echo image dump begin {width} {height}',
-        #         (
-        #             f'dd if=/dev/mem iflag=skip_bytes,count_bytes bs=4096 '
-        #             f'skip={self.dma_dst_addr} count={width * height * 2} '
-        #             'status=none | base64'
-        #         ),
-        #         'echo image dump end'
-        #     ])
         return cmds
 
     def config_files(self) -> tp.Dict[str, tp.IO]:
@@ -93,11 +78,11 @@ class JpegNodeConfig(node.NodeConfig):
     def __init__(self):
         super().__init__()
         self.memory = 4 * 1024
-        self.kcmd_append = "cma=256M"
+        self.kcmd_append = "cma=512M"
 
     def prepare_pre_cp(self):
         cmds = super().prepare_pre_cp()
-        dmabuf_size = 4096 * 4096 * 3 * 2
+        dmabuf_size = 4096 * 4096 * 3 * 2 * 4
         cmds.append(f"modprobe --first-time u-dma-buf udmabuf0={dmabuf_size}")
         return cmds
 
@@ -177,9 +162,10 @@ for (
     if host_var in ["gt", "ga"]:
         server_cfg.app.env_simulator = "gem5"
     server_cfg.app.pci_dev_id = pci_jpeg_id
-    server_cfg.app.images = glob.glob(
-        '../sims/misc/jpeg_decoder/test_img/444_optimized/8x8.jpg'
-    )
+    server_cfg.app.images = [
+        '../sims/misc/jpeg_decoder/test_img/444_opt/8.jpg',
+        '../sims/misc/jpeg_decoder/test_img/444_opt/39.jpg',
+    ]
     # server_cfg.app.trace = trace_mode.is_trace()
     server = HostClass(server_cfg)
     # Whether to synchronize JPEG accelerator and server
