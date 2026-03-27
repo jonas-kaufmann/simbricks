@@ -91,7 +91,7 @@ experiments: tp.List[exp.Experiment] = []
 
 host_variants = ["gt", "gk", "ga"]
 rtl_variants = [sim.JpegDecoderDev.Variant.RTL]
-jpeg_clk_freq_opts = [100]
+jpeg_clk_freq_opts = [100, 200]
 core_opts = [1, 4]
 trace_opts = [mode for mode in sim.VtaVerilatorDev.TraceOpts]
 sampling_len_opts = [10, 100]
@@ -134,10 +134,11 @@ for (
 
             def __init__(self, node_config: sim.NodeConfig) -> None:
                 super().__init__(node_config)
-                self.cpu_freq = "1200MHz"
+                self.cpu_freq = "2000MHz"
                 self.cpu_type = "hpi_a53"
                 self.variant = "opt"
-                self.mem_type = "LPDDR4_1066_1x32"
+                self.mem_type = "DDR4_2400_16x4"
+                self.mem_channels = 4
                 # self.extra_main_args.append("--debug-flags=SimBricksPci")
 
         HostClass = CustomGem5ArmHost
