@@ -63,3 +63,9 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-20 200 \
  && echo 'eval "$(direnv hook bash)"' >> /home/vscode/.bashrc
+
+RUN curl -sSf https://sh.rustup.rs | sh -s -- -y \
+ && export PATH="/root/.cargo/bin:$PATH" \
+ && cargo install --git https://gitlab.com/surfer-project/surfer.git surver \
+ && cp /root/.cargo/bin/surver /usr/local/bin/ \
+ && rustup self uninstall -y
