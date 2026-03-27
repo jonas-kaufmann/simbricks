@@ -572,6 +572,7 @@ class Gem5ArmHost(HostSim):
         """Whether to synchronize with connected simulators. This is not
         compatible with atomic CPU models."""
         self.mem_type = "DDR4_2400_16x4"
+        self.mem_channels = 1
 
     def resreq_cores(self) -> int:
         return 1
@@ -597,6 +598,7 @@ class Gem5ArmHost(HostSim):
             f'--cpu={cpu_type} --mem-size={self.node_config.memory}MB '
             f'--num-cores={self.node_config.cores} '
             f'--mem-type={self.mem_type} '
+            f'--mem-channels={self.mem_channels} '
         )
         if self.node_config.kcmd_append:
             cmd += f'--kernel-cmdline-append="{self.node_config.kcmd_append}" '
