@@ -31,10 +31,11 @@ from simbricks.orchestration.nodeconfig import NodeConfig
 
 class JpegAppConfig(node.AppConfig):
 
-    def __init__(self,) -> None:
+    def __init__(self) -> None:
         super().__init__()
         self.pci_dev_id = 0
         self.images: list[str] = []
+        self.sw = False
 
     def prepare_pre_cp(self) -> tp.List[str]:
         cmds = super().prepare_pre_cp()
@@ -58,7 +59,8 @@ class JpegAppConfig(node.AppConfig):
 
         imgs_arg = " ".join(img_paths_sim)
         pci_dev = f"0000:00:{(self.pci_dev_id):02x}.0"
-        cmds.append(f"/tmp/guest/jpeg_driver vfio {pci_dev} {imgs_arg}")
+        mode = "sw" if self.sw else "vfio"
+        cmds.append(f"/tmp/guest/jpeg_driver {mode} {pci_dev} 0 {imgs_arg}")
         return cmds
 
     def config_files(self) -> tp.Dict[str, tp.IO]:
@@ -90,6 +92,7 @@ class JpegNodeConfig(node.NodeConfig):
 experiments: tp.List[exp.Experiment] = []
 
 host_variants = ["gt", "gk", "ga"]
+modes = ["hw", "sw"]
 rtl_variants = [sim.JpegDecoderDev.Variant.RTL]
 jpeg_clk_freq_opts = [100, 200]
 core_opts = [1, 4]
@@ -98,6 +101,7 @@ sampling_len_opts = [10, 100]
 
 for (
     host_var,
+    mode,
     jpeg_clk_freq,
     cores,
     rtl_variant,
@@ -105,6 +109,7 @@ for (
     sampling_len,
 ) in itertools.product(
     host_variants,
+    modes,
     jpeg_clk_freq_opts,
     core_opts,
     rtl_variants,
@@ -112,7 +117,7 @@ for (
     sampling_len_opts,
 ):
     experiment = exp.Experiment(
-        f"jpeg-{host_var}-{cores}-{jpeg_clk_freq}-{rtl_variant.value}-{trace_mode.value}{sampling_len}"
+        f"jpeg-{host_var}-{mode}-{cores}-{jpeg_clk_freq}-{rtl_variant.value}-{trace_mode.value}{sampling_len}"
     )
 
     pci_jpeg_id = 2
@@ -167,6 +172,7 @@ for (
         '../sims/misc/jpeg_decoder/test_img/444_opt/8.jpg',
         '../sims/misc/jpeg_decoder/test_img/444_opt/39.jpg',
     ]
+    server_cfg.app.sw = mode == "sw"
     # server_cfg.app.trace = trace_mode.is_trace()
     server = HostClass(server_cfg)
     # Whether to synchronize JPEG accelerator and server
