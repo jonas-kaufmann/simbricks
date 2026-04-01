@@ -69,3 +69,9 @@ RUN curl -sSf https://sh.rustup.rs | sh -s -- -y \
  && cargo install --git https://gitlab.com/surfer-project/surfer.git surver \
  && cp /root/.cargo/bin/surver /usr/local/bin/ \
  && rustup self uninstall -y
+
+RUN cd /tmp \
+ && wget https://github.com/chipsalliance/verible/releases/download/v0.0-4053-g89d4d98a/verible-v0.0-4053-g89d4d98a-linux-static-x86_64.tar.gz \
+ && tar -xzf verible-v0.0-4053-g89d4d98a-linux-static-x86_64.tar.gz \
+ && mv verible-v*/bin/* /usr/local/bin/ \
+ && rm -rf /tmp/*
