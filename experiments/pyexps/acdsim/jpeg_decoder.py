@@ -169,6 +169,7 @@ for (
         server_cfg.app.env_simulator = "gem5"
     server_cfg.app.pci_dev_id = pci_jpeg_id
     server_cfg.app.images = [
+        '../sims/external/jpeg/images/1024x1024.jpg',
         '../sims/misc/jpeg_decoder/test_img/444_opt/8.jpg',
         '../sims/misc/jpeg_decoder/test_img/444_opt/39.jpg',
     ]
