@@ -182,7 +182,7 @@ for (
 
     # Instantiate and connect JPEG PCIe-based accelerator to server
     sampling_period = 1 * 10**6
-    vta = sim.JpegDecoderDev(
+    jpeg_dec = sim.JpegDecoderDev(
         "jpeg",
         rtl_variant,
         jpeg_clk_freq,
@@ -190,15 +190,15 @@ for (
         sampling_period,
         sampling_period * sampling_len // 100,
     )
-    server.add_pcidev(vta)
+    server.add_pcidev(jpeg_dec)
     if host_var == "simics":
         server.debug_messages = False
-        server.start_ts = vta.start_tick = int(63 * 10**12)
+        server.start_ts = jpeg_dec.start_tick = int(63 * 10**12)
 
-    server.pci_latency = server.sync_period = vta.pci_latency = vta.sync_period = 65
+    server.pci_latency = server.sync_period = jpeg_dec.pci_latency = jpeg_dec.sync_period = 65
 
     # Add both simulators to experiment
     experiment.add_host(server)
-    experiment.add_pcidev(vta)
+    experiment.add_pcidev(jpeg_dec)
 
     experiments.append(experiment)
