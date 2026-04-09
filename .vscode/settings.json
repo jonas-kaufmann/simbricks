@@ -2,5 +2,8 @@
     "C_Cpp.intelliSenseEngine": "disabled",
     "[python]": {
         "editor.defaultFormatter": "eeyore.yapf"
-    }
+    },
+    "verilog.languageServer.veribleVerilogLs.enabled": true,
+    "verilog.languageServer.veribleVerilogLs.arguments": "--rules_config_search=true",
+    "verilog.formatting.veribleVerilogFormatter.arguments": "--try_wrap_long_lines"
 }
