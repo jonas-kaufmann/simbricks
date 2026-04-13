@@ -22,9 +22,6 @@
 
 include mk/subdir_pre.mk
 
-builddir_udmabuf := $(d)build/
-kmod_udmabuf := $(d)u-dma-buf.ko
-
 $(builddir_udmabuf): $(files_mod_udmabuf)
 	mkdir -p $@
 	cp $^ $@

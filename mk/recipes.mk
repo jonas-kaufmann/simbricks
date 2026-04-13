@@ -28,6 +28,11 @@ cur_dir := $$(d)$(1)/
 $(if $(filter $(abspath .),$(abspath $$(d)$(1))),,include $$(cur_dir)rules.mk)
 endef
 
+define subdir_header
+cur_dir := $$(d)$(1)/
+$(if $(filter $(abspath .),$(abspath $$(d)$(1))),,include $$(cur_dir)rules_h.mk)
+endef
+
 
 DEPFLAGS ?= -MT $@ -MMD -MP -MF $(@:.o=.Td)
 OUTPUT_OPTION.c ?= -o $@

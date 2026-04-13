@@ -22,19 +22,7 @@
 
 include mk/subdir_pre.mk
 
-$(builddir_udmabuf_arm64): $(files_mod_udmabuf)
-	mkdir -p $@
-	cp $^ $@
-	touch $@
-
-$(kmod_udmabuf_arm64): export KERNEL_SRC_DIR := $(abspath $(kernel_dir_arm64))
-$(kmod_udmabuf_arm64): export ARCH := arm64
-$(kmod_udmabuf_arm64): export CROSS_COMPILE=aarch64-linux-gnu-
-$(kmod_udmabuf_arm64): export PWD=$(abspath $(builddir_udmabuf_arm64))
-$(kmod_udmabuf_arm64): $(builddir_udmabuf_arm64) $(vmlinux_arm64)
-	$(MAKE) -C $(builddir_udmabuf_arm64)
-	cp $(builddir_udmabuf_arm64)/u-dma-buf.ko $@
-
-CLEAN := $(builddir_udmabuf_arm64) $(kmod_udmabuf_arm64)
+builddir_udmabuf := $(d)build/
+kmod_udmabuf := $(d)u-dma-buf.ko
 
 include mk/subdir_post.mk

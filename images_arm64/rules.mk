@@ -55,6 +55,9 @@ kheader_tar_arm64 := $(d)kheaders.tar.bz2
 m5_bin_arm64 := $(d)m5
 guest_init_arm64 := $(d)/scripts/guestinit.sh
 
+$(eval $(call subdir_header,kmods))
+
+
 build-images-aarch64: $(IMAGES_ARM64) $(RAW_IMAGES_ARM64) \
     $(vmlinux_arm64) \
     $(bz_image_arm64)

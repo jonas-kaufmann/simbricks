@@ -60,6 +60,9 @@ farmem_mod := $(farmem_dir)/farmem.ko
 m5_bin := $(d)m5
 guest_init := $(d)/scripts/guestinit.sh
 
+$(eval $(call subdir_header,kmods))
+
+
 build-images: $(IMAGES) $(RAW_IMAGES) $(vmlinux) $(bz_image) $(mqnic_mod) \
   $(farmem_mod)
 
